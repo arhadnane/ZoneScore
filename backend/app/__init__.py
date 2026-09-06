@@ -1,0 +1,1 @@
+"""URBISQC backend application package."""

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>URBISQC — GeoSafe Québec</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+  :root {
+    --bg: #101418; --panel: #1a2129; --text: #e8edf2; --muted: #93a1af;
+    --accent: #4fc3f7; --border: #2b3644;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  #map { position: absolute; inset: 0; }
+  .panel {
+    position: absolute; z-index: 10; background: rgba(26,33,41,.94); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; backdrop-filter: blur(6px);
+  }
+  #controls { top: 14px; left: 14px; width: 300px; max-height: calc(100% - 28px); overflow-y: auto; }
+  #detail { top: 14px; right: 14px; width: 300px; display: none; }
+  h1 { font-size: 16px; letter-spacing: .4px; margin-bottom: 2px; }
+  .sub { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+  .row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .seg { flex: 1; display: flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+  .seg button {
+    flex: 1; padding: 7px 4px; border: 0; background: transparent; color: var(--muted);
+    font-size: 12px; cursor: pointer; transition: background .15s;
+  }
+  .seg button.active { background: var(--accent); color: #06232f; font-weight: 600; }
+  label.slider-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin: 8px 0 2px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  #stats { font-size: 12px; color: var(--muted); line-height: 1.7; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+  #stats b { color: var(--text); }
+  .legend { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 10px; color: var(--muted); }
+  .legend .bar { flex: 1; height: 10px; border-radius: 5px; background: linear-gradient(90deg, #d73027, #fee08b, #1a9850); }
+  #detail h2 { font-size: 13px; margin-bottom: 6px; color: var(--accent); word-break: break-all; }
+  #detail table { width: 100%; font-size: 11px; border-collapse: collapse; }
+  #detail td { padding: 2px 0; color: var(--muted); }
+  #detail td:last-child { text-align: right; color: var(--text); }
+  .score-line { display: flex; justify-content: space-between; font-size: 13px; margin: 3px 0; }
+  .btn {
+    width: 100%; margin-top: 10px; padding: 8px; border: 1px solid var(--border); border-radius: 7px;
+    background: transparent; color: var(--accent); font-size: 12px; cursor: pointer;
+  }
+  .btn:hover { background: rgba(79,195,247,.12); }
+  #simState { font-size: 10px; color: var(--muted); margin-top: 6px; text-align: center; }
+  details { margin-top: 10px; }
+  summary { font-size: 12px; cursor: pointer; color: var(--text); }
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="controls" class="panel">
+  <h1>URBISQC · GeoSafe Québec</h1>
+  <div class="sub">Sécurité &amp; quiétude urbaine — grille H3, Ville de Québec</div>
+
+  <div class="row">
+    <div class="seg" id="metricSeg">
+      <button data-metric="safety_score" class="active">Sécurité</button>
+      <button data-metric="calmness_score">Quiétude</button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="seg" id="resSeg">
+      <button data-res="8" class="active">H3 rés. 8</button>
+      <button data-res="9">H3 rés. 9</button>
+    </div>
+  </div>
+
+  <div class="legend"><span>0</span><div class="bar"></div><span>100</span></div>
+
+  <details>
+    <summary>Simulation « et si… » (poids du modèle)</summary>
+    <div id="sliders"></div>
+    <button class="btn" id="applySim">Appliquer la simulation</button>
+    <button class="btn" id="resetSim">Réinitialiser</button>
+    <div id="simState"></div>
+  </details>
+
+  <div id="stats">Chargement…</div>
+</div>
+
+<div id="detail" class="panel">
+  <h2 id="detailTitle"></h2>
+  <div class="score-line"><span>Sécurité</span><b id="dSafety"></b></div>
+  <div class="score-line"><span>Quiétude</span><b id="dCalm"></b></div>
+  <div class="score-line"><span>Profil</span><b id="dProfile" style="font-size:11px"></b></div>
+  <table id="dCounts"></table>
+</div>
+
+<script>
+"use strict";
+const API = "";
+const state = { metric: "safety_score", resolution: 8, weights: null, simScores: null };
+
+const map = new maplibregl.Map({
+  container: "map",
+  style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+  center: [-71.2429, 46.8288],
+  zoom: 10.6,
+});
+map.addControl(new maplibregl.NavigationControl(), "bottom-right");
+
+const colorRamp = (metric) => [
+  "interpolate", ["linear"], ["get", metric],
+  0, "#d73027", 25, "#fc8d59", 50, "#fee08b", 75, "#91cf60", 100, "#1a9850",
+];
+
+async function fetchJSON(url, options) {
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error(`${url} -> HTTP ${res.status}`);
+  return res.json();
+}
+
+function mergeSimulation(geojson) {
+  if (!state.simScores) return geojson;
+  const byCell = state.simScores;
+  const features = geojson.features.map((f) => {
+    const sim = byCell[f.properties.h3];
+    return sim
+      ? { ...f, properties: { ...f.properties, safety_score: sim.s, calmness_score: sim.c } }
+      : f;
+  });
+  return { ...geojson, features };
+}
+
+let baseGeojson = null;
+async function loadZones() {
+  baseGeojson = await fetchJSON(`${API}/api/zones?resolution=${state.resolution}`);
+  renderZones();
+}
+
+function renderZones() {
+  const data = mergeSimulation(baseGeojson);
+  const src = map.getSource("zones");
+  if (src) {
+    src.setData(data);
+    map.setPaintProperty("zones-fill", "fill-color", colorRamp(state.metric));
+  } else {
+    map.addSource("zones", { type: "geojson", data });
+    map.addLayer({
+      id: "zones-fill", type: "fill", source: "zones",
+      paint: { "fill-color": colorRamp(state.metric), "fill-opacity": 0.55 },
+    });
+    map.addLayer({
+      id: "zones-line", type: "line", source: "zones",
+      paint: { "line-color": "#0e141a", "line-width": 0.6, "line-opacity": 0.7 },
+    });
+    map.on("click", "zones-fill", (e) => showDetail(e.features[0].properties.h3));
+    map.on("mouseenter", "zones-fill", () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", "zones-fill", () => (map.getCanvas().style.cursor = ""));
+  }
+}
+
+async function loadStats() {
+  const s = await fetchJSON(`${API}/api/stats?resolution=${state.resolution}`);
+  const profiles = Object.entries(s.profiles)
+    .map(([name, n]) => `${name}&nbsp;(${n})`).join(" · ");
+  document.getElementById("stats").innerHTML =
+    `<b>${s.zone_count}</b> zones · rés. ${s.resolution}<br>` +
+    `Sécurité — moy. <b>${s.safety_mean}</b> (P10 ${s.safety_p10} / P90 ${s.safety_p90})<br>` +
+    `Quiétude — moy. <b>${s.calmness_mean}</b> (P10 ${s.calmness_p10} / P90 ${s.calmness_p90})<br>` +
+    `<span style="font-size:10px">${profiles}</span>`;
+}
+
+async function showDetail(cell) {
+  const d = await fetchJSON(`${API}/api/zones/${cell}`);
+  document.getElementById("detailTitle").textContent = d.h3;
+  document.getElementById("dSafety").textContent = d.safety_score.toFixed(1);
+  document.getElementById("dCalm").textContent = d.calmness_score.toFixed(1);
+  document.getElementById("dProfile").textContent = d.profile;
+  document.getElementById("dCounts").innerHTML = Object.entries(d.counts)
+    .map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("");
+  document.getElementById("detail").style.display = "block";
+}
+
+/* ---- simulation sliders ---- */
+async function buildSliders() {
+  state.weights = await fetchJSON(`${API}/api/weights`);
+  const box = document.getElementById("sliders");
+  box.innerHTML = "";
+  for (const feature of state.weights.features) {
+    const sw = state.weights.safety_weights[feature] ?? 0;
+    const cw = state.weights.calmness_weights[feature] ?? 0;
+    box.insertAdjacentHTML("beforeend", `
+      <label class="slider-label">${feature} — sécurité <span id="sv_${feature}">${sw.toFixed(2)}</span></label>
+      <input type="range" min="-0.5" max="0.5" step="0.05" value="${sw}" data-kind="safety" data-feature="${feature}">
+      <label class="slider-label">${feature} — quiétude <span id="cv_${feature}">${cw.toFixed(2)}</span></label>
+      <input type="range" min="-0.5" max="0.5" step="0.05" value="${cw}" data-kind="calmness" data-feature="${feature}">
+    `);
+  }
+  box.addEventListener("input", (e) => {
+    const el = e.target;
+    if (el.tagName !== "INPUT") return;
+    const id = (el.dataset.kind === "safety" ? "sv_" : "cv_") + el.dataset.feature;
+    document.getElementById(id).textContent = Number(el.value).toFixed(2);
+  });
+}
+
+async function applySimulation() {
+  const safety = {}, calm = {};
+  document.querySelectorAll("#sliders input").forEach((el) => {
+    const v = Number(el.value);
+    if (el.dataset.kind === "safety") safety[el.dataset.feature] = v;
+    else calm[el.dataset.feature] = v;
+  });
+  const body = { resolution: state.resolution, safety_weights: safety, calmness_weights: calm };
+  const sim = await fetchJSON(`${API}/api/simulate`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  });
+  state.simScores = Object.fromEntries(sim.zones.map((z) => [z.h3, { s: z.safety_score, c: z.calmness_score }]));
+  document.getElementById("simState").textContent = "Simulation active — les couleurs reflètent vos poids.";
+  renderZones();
+}
+
+function resetSimulation() {
+  state.simScores = null;
+  document.getElementById("simState").textContent = "";
+  buildSliders();
+  renderZones();
+}
+
+/* ---- UI wiring ---- */
+document.getElementById("metricSeg").addEventListener("click", (e) => {
+  if (!e.target.dataset.metric) return;
+  state.metric = e.target.dataset.metric;
+  document.querySelectorAll("#metricSeg button").forEach((b) => b.classList.toggle("active", b === e.target));
+  renderZones();
+});
+document.getElementById("resSeg").addEventListener("click", async (e) => {
+  if (!e.target.dataset.res) return;
+  state.resolution = Number(e.target.dataset.res);
+  state.simScores = null;
+  document.getElementById("simState").textContent = "";
+  document.querySelectorAll("#resSeg button").forEach((b) => b.classList.toggle("active", b === e.target));
+  await loadZones();
+  await loadStats();
+});
+document.getElementById("applySim").addEventListener("click", applySimulation);
+document.getElementById("resetSim").addEventListener("click", resetSimulation);
+
+map.on("load", async () => {
+  await buildSliders();
+  await loadZones();
+  await loadStats();
+});
+</script>
+</body>
+</html>

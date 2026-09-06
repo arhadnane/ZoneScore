@@ -1,0 +1,1 @@
+# Processed artifacts (H3 Parquet tables + DuckDB). Regenerate with `make etl`.

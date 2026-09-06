@@ -1,0 +1,16 @@
+# Architectural Decision Log — URBISQC / GeoSafe Québec
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| 1 | Workspace root (`ZoneScore/`) is used directly as the `urbisqc/` project root. | Avoids a redundant nesting level; all spec paths are preserved relative to root. |
+| 2 | H3 v4 Python API (`h3>=4.0`) with `geo_to_cells` on shapely geometries. | v4 is the maintained API; `__geo_interface__` integration removes manual coordinate munging. |
+| 3 | Geometry is **not persisted**; hex boundaries are derived on demand from H3 cell ids via `cell_to_boundary`. | H3 ids are a lossless spatial encoding — persisting only ids + attributes keeps Parquet small and schema simple. |
+| 4 | Embedded storage = Parquet (canonical) + DuckDB file exposing views over the Parquet. | Zero standalone services; DuckDB gives ad-hoc SQL analytics over the same files. |
+| 5 | OSM ingestion via `osmnx` with a **deterministic synthetic fallback** (`URBIS_OFFLINE=1` or network failure). | Guarantees the pipeline always completes (self-healing); synthetic data uses a seeded hash + downtown-distance gradient so results are reproducible and spatially plausible. |
+| 6 | City boundary: `osmnx.geocode_to_gdf("Québec City")` with a bounding-polygon fallback covering the urban agglomeration. | Same resilience principle as #5. |
+| 7 | Scores = robust-scaled (median/IQR) feature counts → weighted linear blend → percentile rank mapped to 0–100. | RobustScaler resists heavy-tailed POI counts; percentile ranking yields an interpretable, uniformly distributed score. |
+| 8 | Clustering = K-Means (k=5) on robust-scaled features, with human-readable profile labels derived from cluster centroids. | K-Means is stable, fast and deterministic (fixed seed); HDBSCAN rejected as it produces noise labels that complicate the UI. |
+| 9 | Frontend = single self-contained `index.html` (MapLibre GL via CDN) served by FastAPI at `/`. | No build step, no Node toolchain required at runtime — satisfies bare-metal, zero-friction constraint. |
+| 10 | Simulation endpoint recomputes scores server-side from persisted feature counts with user-supplied weight overrides. | Keeps the scoring model authoritative in one place; frontend stays a thin client. |
+| 11 | API loads Parquet into an in-process cache at startup; if artifacts are missing the ETL pipeline runs automatically (offline mode unless configured otherwise). | Single-command launch (`run.sh` / `make run`) works from a clean clone. |
+| 12 | Tests run fully offline (`URBIS_OFFLINE=1`) against a temporary data directory. | Deterministic, network-free CI. |
