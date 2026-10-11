@@ -21,6 +21,7 @@ class CityConfig:
     downtown_lat: float
     downtown_lng: float
     default_zoom: float
+    country: str = "CA"
 
     @property
     def boundary_box(self) -> Polygon:
@@ -44,7 +45,24 @@ class CityConfig:
         )
 
 
-# Major Canadian metropolitan areas supported by URBIS Canada
+# Display names for the country -> province/state -> city hierarchy
+COUNTRY_NAMES: dict[str, str] = {"CA": "Canada", "US": "United States"}
+
+REGION_NAMES: dict[tuple[str, str], str] = {
+    ("CA", "QC"): "Québec",
+    ("CA", "ON"): "Ontario",
+    ("CA", "BC"): "British Columbia",
+    ("CA", "AB"): "Alberta",
+    ("US", "NY"): "New York",
+    ("US", "CA"): "California",
+    ("US", "IL"): "Illinois",
+    ("US", "WA"): "Washington",
+    ("US", "MA"): "Massachusetts",
+    ("US", "TX"): "Texas",
+}
+
+
+# Major metropolitan areas supported by URBIS (Canada & USA)
 CITIES: dict[str, CityConfig] = {
     "quebec": CityConfig(
         id="quebec",
@@ -75,7 +93,7 @@ CITIES: dict[str, CityConfig] = {
     "ottawa": CityConfig(
         id="ottawa",
         name="Ottawa - Gatineau",
-        province="ON/QC",
+        province="ON",
         city_query="Ottawa, Ontario, Canada",
         bbox_west=-75.770,
         bbox_south=45.360,
@@ -110,6 +128,116 @@ CITIES: dict[str, CityConfig] = {
         downtown_lat=49.2827,
         downtown_lng=-123.1207,
         default_zoom=12.2,
+    ),
+    "calgary": CityConfig(
+        id="calgary",
+        name="Calgary",
+        province="AB",
+        city_query="Calgary, Alberta, Canada",
+        bbox_west=-114.200,
+        bbox_south=50.980,
+        bbox_east=-113.960,
+        bbox_north=51.120,
+        downtown_lat=51.0447,
+        downtown_lng=-114.0719,
+        default_zoom=11.8,
+    ),
+    "edmonton": CityConfig(
+        id="edmonton",
+        name="Edmonton",
+        province="AB",
+        city_query="Edmonton, Alberta, Canada",
+        bbox_west=-113.620,
+        bbox_south=53.480,
+        bbox_east=-113.370,
+        bbox_north=53.620,
+        downtown_lat=53.5461,
+        downtown_lng=-113.4938,
+        default_zoom=11.8,
+    ),
+    "newyork": CityConfig(
+        id="newyork",
+        name="New York",
+        province="NY",
+        city_query="New York City, New York, USA",
+        bbox_west=-74.030,
+        bbox_south=40.700,
+        bbox_east=-73.920,
+        bbox_north=40.800,
+        downtown_lat=40.7580,
+        downtown_lng=-73.9855,
+        default_zoom=12.2,
+        country="US",
+    ),
+    "losangeles": CityConfig(
+        id="losangeles",
+        name="Los Angeles",
+        province="CA",
+        city_query="Los Angeles, California, USA",
+        bbox_west=-118.350,
+        bbox_south=33.980,
+        bbox_east=-118.150,
+        bbox_north=34.120,
+        downtown_lat=34.0522,
+        downtown_lng=-118.2437,
+        default_zoom=11.6,
+        country="US",
+    ),
+    "chicago": CityConfig(
+        id="chicago",
+        name="Chicago",
+        province="IL",
+        city_query="Chicago, Illinois, USA",
+        bbox_west=-87.760,
+        bbox_south=41.810,
+        bbox_east=-87.580,
+        bbox_north=41.960,
+        downtown_lat=41.8781,
+        downtown_lng=-87.6298,
+        default_zoom=11.8,
+        country="US",
+    ),
+    "seattle": CityConfig(
+        id="seattle",
+        name="Seattle",
+        province="WA",
+        city_query="Seattle, Washington, USA",
+        bbox_west=-122.400,
+        bbox_south=47.570,
+        bbox_east=-122.270,
+        bbox_north=47.680,
+        downtown_lat=47.6062,
+        downtown_lng=-122.3321,
+        default_zoom=12.0,
+        country="US",
+    ),
+    "boston": CityConfig(
+        id="boston",
+        name="Boston",
+        province="MA",
+        city_query="Boston, Massachusetts, USA",
+        bbox_west=-71.140,
+        bbox_south=42.320,
+        bbox_east=-71.020,
+        bbox_north=42.400,
+        downtown_lat=42.3601,
+        downtown_lng=-71.0589,
+        default_zoom=12.2,
+        country="US",
+    ),
+    "houston": CityConfig(
+        id="houston",
+        name="Houston",
+        province="TX",
+        city_query="Houston, Texas, USA",
+        bbox_west=-95.450,
+        bbox_south=29.690,
+        bbox_east=-95.290,
+        bbox_north=29.810,
+        downtown_lat=29.7604,
+        downtown_lng=-95.3698,
+        default_zoom=11.8,
+        country="US",
     ),
 }
 

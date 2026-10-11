@@ -1,20 +1,37 @@
-# URBIS Canada — GeoSafe Multi-Metropolitan Platform
+# URBIS — GeoSafe Cross-Border Urban Analytics Platform
 
-Spatial data-science platform scoring **Safety** (perceived-safety proxies), **Calmness**
-(tranquility vs. urban vibrancy) and **Family-Friendliness** (schools, parks, quiet streets)
-across major Canadian metropolitan areas on an **Uber H3** hexagonal grid (resolutions 8 & 9). Bare-metal stack — no Docker, no standalone database.
+Spatial data-science platform scoring **Safety** (perceived-safety proxies), **Calmness** (tranquility vs. urban vibrancy), and **Family-Friendliness** (schools, parks, quiet streets) across major North American metropolitan areas on an **Uber H3** hexagonal grid (resolutions 8 & 9). Bare-metal stack — no Docker, no standalone database.
 
-Supported Metros: **Québec (QC)**, **Montréal (QC)**, **Ottawa - Gatineau (ON/QC)**, **Toronto (ON)**, **Vancouver (BC)**.
+Supported Metros — pick **Pays › Province / État › Ville** in the UI:
+- **Canada**: 
+  - **Québec**: Québec (QC), Montréal (QC)
+  - **Ontario**: Ottawa - Gatineau (ON), Toronto (ON)
+  - **British Columbia**: Vancouver (BC)
+  - **Alberta**: Calgary (AB), Edmonton (AB)
+- **United States**: 
+  - **New York**: New York (NY)
+  - **California**: Los Angeles (CA)
+  - **Illinois**: Chicago (IL)
+  - **Washington**: Seattle (WA)
+  - **Massachusetts**: Boston (MA)
+  - **Texas**: Houston (TX)
+
+## Architecture & Real Data Strategy
+
+ZoneScore offers a dual real-data architecture:
+1. **Local Geofabrik PBF Extraction (DuckDB Spatial)**: Fast, offline extraction of entire metropolitan regions (e.g. `data/raw/quebec-latest.osm.pbf`) via DuckDB's spatial engine (`ST_ReadOSM`) without Overpass timeout risks.
+2. **On-Demand Live OSM Enrichment**: Clicking on any H3 hexagon queries the live OpenStreetMap REST API (`api.openstreetmap.org`) in real-time (< 1s) to show verified amenities, recent points of interest, and active streetlamps with an in-memory session cache.
+3. **Deterministic Synthetic Fallback**: Fallback generator with downtown-distance exponential gradients when offline (`URBIS_OFFLINE=1`).
 
 ## Stack
 
 | Layer | Technology |
 |---|---|
 | Spatial indexing | H3 v4 (`h3-py`) |
-| Data engine | Python 3.11, pandas, shapely, geopandas, osmnx, DuckDB (embedded), Parquet |
+| Data engine | Python 3.11, pandas, shapely, geopandas, osmnx, DuckDB Spatial (embedded), Parquet |
 | ML / analytics | scikit-learn — RobustScaler + K-Means zone profiling |
-| Backend API | FastAPI (async, Pydantic v2, GZip, CORS, Multi-City routing) |
-| Frontend | MapLibre GL SPA (Canadian Metro Switcher, Address Search, Zone Comparator, Basemaps) |
+| Backend API | FastAPI (async, Pydantic v2, GZip, CORS, Multi-City hierarchical routing) |
+| Frontend | MapLibre GL SPA (Country/Province/City cascading selects, Address Search, Zone Comparator, Live OSM Badging, Basemaps) |
 
 ## Quick start
 
@@ -35,46 +52,50 @@ cd backend
 ```
 
 Open **http://127.0.0.1:8000** :
-- **Canadian Metros** : Seamlessly switch between Québec, Montréal, Ottawa, Toronto, and Vancouver.
+- **Cascading Selectors** : Select Country (Canada, USA) › Province/State › City.
 - **Metrics** : Sécurité, Quiétude, Familial, Profils K-Means.
-- **Search** : Canadian address autocompletion with automatic metro detection.
+- **Tooltip Hover** : Instant 60fps local inspection of scores and clusters.
+- **Live Inspection** : Click any hex to load real-time OpenStreetMap venues, recent POIs, and live indicators.
+- **Search** : Canadian and US address autocompletion with automatic metro detection.
 - **Comparator** : Click *Comparer cette zone* to compare two urban areas side-by-side.
-- **Themes** : Switch between Dark, Light, and Terrain basemaps.
+- **Themes** : Switch between Dark, Light, and Voyager basemaps.
 - **Simulation** : Re-weight model parameters in real-time.
 
 ## Data flow
 
-1. **Boundary** — OSM geocoding of Québec City (bbox fallback when offline).
+1. **Boundary** — Accurate city core bounding boxes (`app/core/cities.py`).
 2. **Grid** — H3 cells at resolutions 8 and 9 covering the boundary.
-3. **Features** — 10 urban feature categories counted per cell (OSM via `osmnx` with polygon cell expansion; deterministic synthetic generator with a downtown-distance gradient used when offline).
+3. **Features** — 10 urban feature categories counted per cell:
+   - Priority 1: Local Geofabrik PBF extracts via DuckDB Spatial (`ST_ReadOSM`).
+   - Priority 2: Remote OSM API / `osmnx` extraction with boundary polygon expansion.
+   - Priority 3: Deterministic synthetic generator with downtown-distance gradient.
 4. **Scores** — RobustScaler → weighted blend → percentile rank (0–100) for Safety, Calmness, and Family indices.
 5. **Profiles** — K-Means (k=5) with human-readable cluster labels.
-6. **Storage** — Parquet per resolution in `data/processed/` + DuckDB views
-   (`zones_res8`, `zones_res9`) in `data/processed/urbisqc.duckdb`.
+6. **Storage** — Parquet per resolution and city in `data/processed/` + DuckDB views (`zones_{city}_res{res}`) in `data/processed/urbisqc.duckdb`.
 
-## API
+## API Endpoints
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/health` | Service status & loaded zone counts |
-| `GET /api/zones?resolution=8` | GeoJSON FeatureCollection with scores/profiles |
-| `GET /api/zones/{h3}` | Full detail (counts, centroid, cluster) for one cell |
+| `GET /api/cities` | List supported metropolitan cities with country and province hierarchy |
+| `GET /api/health` | Service status, loaded cities, and zone counts |
+| `GET /api/zones?city={city}&resolution=8` | GeoJSON FeatureCollection with pre-computed scores and profiles |
+| `GET /api/zones/{h3}?live=true` | Full detail, breakdown counts, centroid, cluster, and live OSM POIs |
 | `GET /api/locate?lat={lat}&lng={lng}` | Find the H3 cell at coordinates or closest match |
-| `GET /api/stats?resolution=8` | Distribution statistics & profile histogram |
+| `GET /api/stats?city={city}&resolution=8` | Distribution statistics & profile histogram |
 | `GET /api/weights` | Default model weights (Safety, Calmness, Family) |
-| `POST /api/simulate` | Re-score with user weight overrides (what-if) |
+| `POST /api/simulate` | Re-score with user weight overrides (what-if analysis) |
 
-Interactive docs: `http://127.0.0.1:8000/docs`.
+Interactive Swagger documentation: `http://127.0.0.1:8000/docs`.
 
 ## Configuration (env, prefix `URBIS_`)
 
-`URBIS_OFFLINE=1` (synthetic data), `URBIS_DATA_DIR`, `URBIS_RESOLUTIONS='[8,9]'`,
-`URBIS_PORT`, `URBIS_CITY_QUERY`.
+`URBIS_OFFLINE=1` (synthetic data), `URBIS_DATA_DIR`, `URBIS_RESOLUTIONS='[8,9]'`, `URBIS_PORT`, `URBIS_CITY_QUERY`.
 
 ## Tests
 
 ```bash
-cd backend && ../.venv/bin/python -m pytest    # or make test
+cd backend && ..\.venv\Scripts\python -m pytest    # or make test
 ```
 
 Fully offline & deterministic — pipeline, scoring, clustering, and end-to-end API suites.
@@ -83,7 +104,7 @@ Fully offline & deterministic — pipeline, scoring, clustering, and end-to-end 
 
 ```sql
 -- .venv python: import duckdb; duckdb.connect('data/processed/urbisqc.duckdb')
-SELECT profile, count(*), avg(safety_score) FROM zones_res8 GROUP BY profile;
+SELECT profile, count(*), avg(safety_score) FROM zones_montreal_res8 GROUP BY profile;
 ```
 
 See [DECISIONS.md](DECISIONS.md) for the architectural decision log.

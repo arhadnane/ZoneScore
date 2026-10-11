@@ -148,6 +148,9 @@ _fetch_osm_points = _fetch_osm_geometries
 _aggregate_points = _aggregate_geometries
 
 
+_BOUNDARY_GEOMS_CACHE: dict[str, dict[str, list]] = {}
+
+
 def build_feature_counts(
     boundary: Polygon,
     cells: list[str],
@@ -157,9 +160,25 @@ def build_feature_counts(
 ) -> pd.DataFrame:
     """Feature counts per cell — OSM when reachable, synthetic otherwise."""
     s = settings or get_settings()
+    # Priority 1: Check for local Geofabrik PBF extracts (100% offline, ultra-fast, 100% real)
+    pbf_candidates = list(s.raw_dir.glob("*.osm.pbf"))
+    if pbf_candidates:
+        from app.etl.pbf_extract import extract_city_features_from_pbf
+
+        for pbf_path in pbf_candidates:
+            try:
+                df = extract_city_features_from_pbf(pbf_path, boundary, cells, resolution)
+                if df[list(FEATURES)].to_numpy().sum() > 0:
+                    return df
+            except Exception as pbf_err:
+                log.warning("PBF extraction from %s failed: %s", pbf_path.name, pbf_err)
+
     if not s.offline:
         try:
-            geoms = _fetch_osm_geometries(boundary, s)
+            b_key = f"{city or 'default'}:{boundary.bounds}"
+            if b_key not in _BOUNDARY_GEOMS_CACHE:
+                _BOUNDARY_GEOMS_CACHE[b_key] = _fetch_osm_geometries(boundary, s)
+            geoms = _BOUNDARY_GEOMS_CACHE[b_key]
             df = _aggregate_geometries(geoms, cells, resolution)
             if df[list(FEATURES)].to_numpy().sum() > 0:
                 log.info(

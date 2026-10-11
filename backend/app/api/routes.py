@@ -14,7 +14,13 @@ from app.api.schemas import (
     ZoneScore,
 )
 from app.api.store import get_store
-from app.core.cities import find_city_by_coords, get_city, list_cities
+from app.core.cities import (
+    COUNTRY_NAMES,
+    REGION_NAMES,
+    find_city_by_coords,
+    get_city,
+    list_cities,
+)
 from app.core.config import get_settings
 from app.core.constants import FEATURES
 from app.models.scoring import (
@@ -41,12 +47,15 @@ def _validate_resolution(resolution: int, city: str = "quebec") -> None:
 
 @router.get("/cities", response_model=list[CityInfo])
 def get_cities() -> list[CityInfo]:
-    """List supported Canadian metropolitan cities."""
+    """List supported metropolitan cities with their country / province (state)."""
     return [
         CityInfo(
             id=c.id,
             name=c.name,
             province=c.province,
+            country=c.country,
+            country_name=COUNTRY_NAMES.get(c.country, c.country),
+            province_name=REGION_NAMES.get((c.country, c.province), c.province),
             center=c.center,
             default_zoom=c.default_zoom,
             bounds=c.bounds_coords,
@@ -83,10 +92,23 @@ def zones(
 def zone_detail(
     cell: str,
     city: str | None = Query(default=None, description="Optional city hint"),
+    live: bool = Query(default=True, description="Enrich with live OpenStreetMap data for this cell"),
 ) -> ZoneDetail:
     detail = get_store().zone_detail(cell, city=city)
     if detail is None:
         raise HTTPException(status_code=404, detail=f"Unknown H3 cell '{cell}'.")
+
+    if live:
+        from app.etl.live_osm import fetch_live_cell_features
+
+        live_res = fetch_live_cell_features(cell)
+        if live_res.get("live") and live_res.get("counts"):
+            # Update counts with live OSM counts where available
+            detail["counts"] = {**detail.get("counts", {}), **live_res["counts"]}
+            detail["live_active"] = True
+            detail["live_poi_samples"] = live_res.get("poi_samples", [])
+            detail["live_total_elements"] = live_res.get("total_live_elements", 0)
+
     return ZoneDetail(**detail)
 
 

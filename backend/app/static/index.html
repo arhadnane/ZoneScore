@@ -238,6 +238,8 @@
 
   /* Segmented Controls */
   .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; }
+  .geo-select { width: 100%; padding: 7px 10px; background: var(--card-bg); color: #fff; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; outline: none; transition: border-color .15s; }
+  .geo-select:hover, .geo-select:focus { border-color: var(--accent, #6366f1); }
   .row { display: flex; gap: 6px; margin-bottom: 12px; }
   .seg {
     flex: 1;
@@ -450,15 +452,11 @@
   </div>
   <div class="sub">Plateforme d'analyse et scoring spatial multi-métropoles sur grille H3.</div>
 
-  <div class="section-label">🍁 Métropole Canadienne</div>
-  <div class="row" style="margin-bottom: 10px;">
-    <select id="citySelect" style="width: 100%; padding: 7px 10px; background: var(--card-bg); color: #fff; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; outline: none; transition: border-color .15s;">
-      <option value="quebec">Québec (QC)</option>
-      <option value="montreal">Montréal (QC)</option>
-      <option value="ottawa">Ottawa - Gatineau (ON/QC)</option>
-      <option value="toronto">Toronto (ON)</option>
-      <option value="vancouver">Vancouver (BC)</option>
-    </select>
+  <div class="section-label">🌎 Pays › Province / État › Ville</div>
+  <div class="row" style="margin-bottom: 10px; flex-direction: column; gap: 6px;">
+    <select id="countrySelect" aria-label="Pays" class="geo-select"></select>
+    <select id="provinceSelect" aria-label="Province ou État" class="geo-select"></select>
+    <select id="citySelect" aria-label="Ville" class="geo-select"></select>
   </div>
 
   <div class="section-label">Métrique affichée</div>
@@ -514,6 +512,10 @@
     <button class="close-btn" id="closeDetail" aria-label="Fermer">✕</button>
   </div>
   <div id="dProfileTag" class="profile-tag"></div>
+  <div id="dLiveBadge" style="display:none; margin-bottom:8px; padding:4px 8px; border-radius:6px; background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; font-size:10px; font-weight:700; align-items:center; gap:5px;">
+    <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; animation: pulse 1.5s infinite;"></span>
+    <span>Données OpenStreetMap en Direct (Live)</span>
+  </div>
   <div id="dProfile" style="display:none"></div>
 
   <div class="score-card">
@@ -534,6 +536,10 @@
   <button class="btn btn-compare" id="startCompareBtn">⚖️ Comparer avec une autre zone</button>
 
   <table id="dCounts"></table>
+  <div id="dLivePoiContainer" style="display:none; margin-top:10px;">
+    <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Lieux récents détectés (OSM Live) :</div>
+    <ul id="dLivePois" style="padding-left:14px; font-size:10px; color:#cbd5e1; margin:0; max-height:120px; overflow-y:auto; line-height:1.4;"></ul>
+  </div>
 </div>
 
 <!-- Modal Comparator Panel -->
@@ -548,13 +554,49 @@
 <script>
 "use strict";
 const API = "";
-const CANADIAN_CITIES = {
-  quebec: { name: "Québec", province: "QC", center: [-71.2429, 46.8288], zoom: 11.2 },
-  montreal: { name: "Montréal", province: "QC", center: [-73.5673, 45.5017], zoom: 12.0 },
-  ottawa: { name: "Ottawa - Gatineau", province: "ON/QC", center: [-75.6972, 45.4215], zoom: 12.2 },
-  toronto: { name: "Toronto", province: "ON", center: [-79.3832, 43.6532], zoom: 12.2 },
-  vancouver: { name: "Vancouver", province: "BC", center: [-123.1207, 49.2827], zoom: 12.2 }
-};
+// All supported metros (Canada + USA), filled from /api/cities at startup.
+// Shape: { id: { name, province, provinceName, country, countryName, center:[lng,lat], zoom } }
+const CANADIAN_CITIES = {};
+
+async function loadCities() {
+  const list = await fetchJSON(`${API}/api/cities`);
+  for (const c of list) {
+    CANADIAN_CITIES[c.id] = {
+      name: c.name,
+      province: c.province,
+      provinceName: c.province_name || c.province,
+      country: c.country,
+      countryName: c.country_name,
+      center: [c.center[1], c.center[0]],
+      zoom: c.default_zoom,
+    };
+  }
+}
+
+function fillSelect(el, items, selected) {
+  el.innerHTML = items.map(([v, label]) => `<option value="${v}">${label}</option>`).join("");
+  if (selected !== undefined) el.value = selected;
+}
+
+// Rebuild the three cascading selectors so they reflect the given city.
+function syncSelectors(cityId) {
+  const cfg = CANADIAN_CITIES[cityId];
+  if (!cfg) return;
+  const countries = new Map();
+  Object.values(CANADIAN_CITIES).forEach((c) => countries.set(c.country, c.countryName));
+  fillSelect(document.getElementById("countrySelect"), [...countries], cfg.country);
+
+  const provinces = new Map();
+  Object.values(CANADIAN_CITIES)
+    .filter((c) => c.country === cfg.country)
+    .forEach((c) => provinces.set(c.province, c.provinceName));
+  fillSelect(document.getElementById("provinceSelect"), [...provinces], cfg.province);
+
+  const cities = Object.entries(CANADIAN_CITIES)
+    .filter(([, c]) => c.country === cfg.country && c.province === cfg.province)
+    .map(([id, c]) => [id, c.name]);
+  fillSelect(document.getElementById("citySelect"), cities, cityId);
+}
 
 const state = {
   city: "quebec",
@@ -650,8 +692,7 @@ async function loadZones() {
 async function switchCity(cityId, fly = true) {
   if (!CANADIAN_CITIES[cityId]) return;
   state.city = cityId;
-  const selectEl = document.getElementById("citySelect");
-  if (selectEl) selectEl.value = cityId;
+  syncSelectors(cityId);
   const cfg = CANADIAN_CITIES[cityId];
   const badgeEl = document.getElementById("cityBadge");
   if (badgeEl) badgeEl.textContent = `${cfg.name} (${cfg.province})`;
@@ -828,7 +869,38 @@ async function showDetail(cell) {
   document.getElementById("dCounts").innerHTML = Object.entries(d.counts)
     .map(([k, v]) => `<tr><td>${k.replace("_", " ")}</td><td>${v}</td></tr>`).join("");
 
+  const liveBadge = document.getElementById("dLiveBadge");
+  const livePoiCont = document.getElementById("dLivePoiContainer");
+  const livePoiList = document.getElementById("dLivePois");
+  if (d.live_active) {
+    liveBadge.style.display = "flex";
+    if (d.live_poi_samples && d.live_poi_samples.length > 0) {
+      livePoiCont.style.display = "block";
+      livePoiList.innerHTML = d.live_poi_samples
+        .map(p => `<li><b>${p.name}</b> <span style="color:var(--muted)">(${p.type})</span></li>`)
+        .join("");
+    } else {
+      livePoiCont.style.display = "none";
+    }
+  } else {
+    liveBadge.style.display = "none";
+    livePoiCont.style.display = "none";
+  }
+
   document.getElementById("detail").style.display = "block";
+}
+
+function hideDetail() {
+  document.getElementById("detail").style.display = "none";
+  document.getElementById("comparePanel").style.display = "none";
+  state.selectedCell = null;
+  state.zoneA = null;
+  state.zoneB = null;
+}
+
+function cancelCompareMode() {
+  state.comparing = false;
+  document.getElementById("compareBanner").style.display = "none";
 }
 
 document.getElementById("closeDetail").addEventListener("click", () => {
@@ -935,12 +1007,14 @@ searchInput.addEventListener("input", (e) => {
   }
   searchDebounce = setTimeout(async () => {
     try {
-      const q = encodeURIComponent(val + ", Canada");
-      const url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&addressdetails=1&countrycodes=ca`;
+      const cc = (CANADIAN_CITIES[state.city]?.country || "CA").toLowerCase();
+      const ccName = cc === "us" ? "USA" : "Canada";
+      const q = encodeURIComponent(val + ", " + ccName);
+      const url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&addressdetails=1&countrycodes=${cc}`;
       const res = await fetch(url, { headers: { "Accept-Language": "fr" } });
       const items = await res.json();
       if (!items.length) {
-        searchResults.innerHTML = `<div class="search-item" style="color:var(--muted)">Aucun résultat trouvé au Canada</div>`;
+        searchResults.innerHTML = `<div class="search-item" style="color:var(--muted)">Aucun résultat trouvé (${ccName})</div>`;
       } else {
         searchResults.innerHTML = items.map(it => `
           <div class="search-item" data-lat="${it.lat}" data-lng="${it.lon}" data-name="${it.display_name}">
@@ -1016,8 +1090,7 @@ function restoreFromURL() {
     const m = p.get("metric");
     if (["safety_score", "calmness_score", "family_score", "profile"].includes(m)) state.metric = m;
   }
-  const citySelect = document.getElementById("citySelect");
-  if (citySelect) citySelect.value = state.city;
+  syncSelectors(state.city);
   const cfg = CANADIAN_CITIES[state.city];
   if (cfg) {
     const badge = document.getElementById("cityBadge");
@@ -1096,6 +1169,21 @@ document.getElementById("citySelect").addEventListener("change", (e) => {
   switchCity(e.target.value, true);
 });
 
+// Country change -> jump to the first city of that country (province/city lists follow)
+document.getElementById("countrySelect").addEventListener("change", (e) => {
+  const first = Object.entries(CANADIAN_CITIES).find(([, c]) => c.country === e.target.value);
+  if (first) switchCity(first[0], true);
+});
+
+// Province/State change -> jump to the first city of that region
+document.getElementById("provinceSelect").addEventListener("change", (e) => {
+  const country = document.getElementById("countrySelect").value;
+  const first = Object.entries(CANADIAN_CITIES).find(
+    ([, c]) => c.country === country && c.province === e.target.value
+  );
+  if (first) switchCity(first[0], true);
+});
+
 document.getElementById("metricSeg").addEventListener("click", (e) => {
   const btn = e.target.closest("button");
   if (!btn || !btn.dataset.metric) return;
@@ -1121,6 +1209,7 @@ document.getElementById("applySim").addEventListener("click", applySimulation);
 document.getElementById("resetSim").addEventListener("click", resetSimulation);
 
 map.on("load", async () => {
+  await loadCities();
   const initialCell = restoreFromURL();
   await buildSliders();
   await loadZones();

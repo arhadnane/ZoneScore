@@ -9,6 +9,9 @@ class CityInfo(BaseModel):
     id: str
     name: str
     province: str
+    country: str = "CA"
+    country_name: str = "Canada"
+    province_name: str = ""
     center: tuple[float, float]
     default_zoom: float
     bounds: tuple[float, float, float, float]
@@ -37,6 +40,9 @@ class ZoneDetail(ZoneScore):
     counts: dict[str, int]
     centroid: tuple[float, float]  # (lat, lng)
     city: str = "quebec"
+    live_active: bool = False
+    live_poi_samples: list[dict[str, str]] = Field(default_factory=list)
+    live_total_elements: int = 0
 
 
 class StatsResponse(BaseModel):
