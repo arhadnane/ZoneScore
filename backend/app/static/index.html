@@ -525,6 +525,13 @@
   </details>
 
   <div id="stats">Chargement des données statistiques…</div>
+
+  <div id="disclaimerBox" style="margin-top:14px; padding-top:10px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); line-height:1.4;">
+    <div style="font-weight:700; color:#cbd5e1; display:flex; align-items:center; gap:5px; margin-bottom:3px;">
+      <span>⚠️</span> <span id="disclaimerTitle">Avertissement (Étude & Recherche)</span>
+    </div>
+    <div id="disclaimerText">Ce projet est un prototype développé à visée d'étude et de démonstration. Les scores et données sont des approximations statistiques (proxys urbains OSM / synthétiques) et ne sont pas garantis réels à 100%.</div>
+  </div>
 </div>
 
 <!-- Right Detail Panel -->
@@ -666,6 +673,10 @@ const I18N = {
     countries: {
       CA: "Canada",
       US: "États-Unis"
+    },
+    disclaimer: {
+      title: "Avertissement (Étude & Recherche)",
+      text: "Ce projet est un prototype développé à visée d'étude et de démonstration. Les scores et données sont des approximations statistiques (proxys urbains OSM / synthétiques) et ne sont pas garantis réels à 100%."
     }
   },
   en: {
@@ -755,6 +766,10 @@ const I18N = {
     countries: {
       CA: "Canada",
       US: "United States"
+    },
+    disclaimer: {
+      title: "Disclaimer (Research & Educational Use)",
+      text: "This project is a prototype for educational and research demonstration. Scores and metrics are statistical approximations (OSM POI proxies / synthetic models) and are not guaranteed to be 100% accurate."
     }
   }
 };
@@ -1274,6 +1289,11 @@ function applyLanguage() {
   document.getElementById("lblDetailFamily").textContent = tr.detail.familyIndex;
   document.getElementById("startCompareBtn").textContent = tr.detail.compareBtn;
   document.getElementById("dLivePoiHeader").textContent = tr.detail.recentPois;
+
+  if (tr.disclaimer) {
+    document.getElementById("disclaimerTitle").textContent = tr.disclaimer.title;
+    document.getElementById("disclaimerText").textContent = tr.disclaimer.text;
+  }
 
   const cfg = SUPPORTED_CITIES[state.city];
   if (cfg) {

@@ -2,6 +2,13 @@
 
 ![ZoneScore Platform Preview](docs/images/zonescore_preview.png)
 
+> [!IMPORTANT]
+> **Avertissement / Disclaimer (Educational & Research Purpose Only)**
+> 
+> **FR** : Ce projet est un prototype développé à visée d'étude, d'apprentissage et de recherche personnelle uniquement. Les données et indicateurs affichés (Sécurité, Quiétude, Convivialité familiale) sont des approximations statistiques basées sur des proxys d'équipements urbains OpenStreetMap ou des modèles synthétiques. Ils ne constituent en aucun cas des données officielles, ne reflètent pas des statistiques criminelles certifiées et **ne sont pas garantis réels à 100%**.
+> 
+> **EN**: *This project is a research prototype developed strictly for educational, learning, and demonstration purposes. All computed indices (Safety, Calmness, Family-friendliness) are statistical proxies derived from OpenStreetMap points of interest or synthetic models. They do not represent official public-safety or crime records and **are not guaranteed to be 100% accurate or exhaustive**.*
+
 Spatial data-science platform scoring **Safety** (perceived-safety proxies), **Calmness** (tranquility vs. urban vibrancy), and **Family-Friendliness** (schools, parks, quiet streets) across major North American metropolitan areas on an **Uber H3** hexagonal grid (resolutions 8 & 9). Bare-metal stack — no Docker, no standalone database. Québec is one of the supported cities alongside major Canadian and US metropolitan areas.
 
 Supported Metros — pick **Pays › Province / État › Ville** in the UI:
