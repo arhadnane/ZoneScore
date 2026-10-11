@@ -8,4 +8,9 @@ data/processed/*
 !data/processed/.gitkeep
 backend/cache/
 cache/
-
+.ruff_cache/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
