@@ -124,26 +124,32 @@
   .search-item:hover { background: rgba(56, 189, 248, 0.12); color: #fff; }
   .search-item:last-child { border-bottom: none; }
 
-  /* Basemap Switcher Top Right */
-  #basemapSwitcher {
+  /* Top Right Controls: Language & Basemaps */
+  #topRightBar {
     position: absolute;
     top: 16px;
     right: 16px;
     z-index: 10;
     display: flex;
-    gap: 4px;
+    gap: 8px;
+    align-items: center;
+  }
+  .switch-group {
+    display: flex;
+    gap: 3px;
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 10px;
-    padding: 4px;
+    padding: 3px;
     backdrop-filter: blur(16px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   }
   .bm-btn {
     border: 0;
     background: transparent;
     color: var(--muted);
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     padding: 5px 8px;
     border-radius: 6px;
     cursor: pointer;
@@ -151,7 +157,7 @@
     font-family: inherit;
   }
   .bm-btn.active {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.14);
     color: #fff;
   }
 
@@ -186,11 +192,11 @@
 
   /* Detail Panel */
   #detail {
-    top: 56px;
+    top: 62px;
     right: 16px;
     width: 310px;
     display: none;
-    max-height: calc(100% - 72px);
+    max-height: calc(100% - 78px);
     overflow-y: auto;
     animation: fadeIn .2s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -198,224 +204,234 @@
   /* Compare Modal Panel */
   #comparePanel {
     position: absolute;
-    bottom: 24px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     width: 620px;
-    max-width: calc(100vw - 32px);
-    max-height: 480px;
+    max-width: 90vw;
+    max-height: 85vh;
     overflow-y: auto;
-    z-index: 20;
+    z-index: 30;
     display: none;
-    background: var(--panel-bg);
-    border: 1px solid var(--accent);
-    box-shadow: 0 24px 48px -12px rgba(0,0,0,0.8), 0 0 20px var(--accent-glow);
+    background: rgba(15, 23, 34, 0.95);
+    border: 1px solid var(--panel-border);
     border-radius: 16px;
-    padding: 16px 20px;
+    padding: 20px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(20px);
   }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 14px;
+  }
+  .compare-col {
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .compare-header {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 8px;
+    color: var(--accent);
+  }
+  .delta-pill {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    margin-left: 6px;
+  }
+  .delta-pos { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+  .delta-neg { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-6px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Header */
-  .brand { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+  .brand { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .brand h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: #fff; }
   .badge-tag {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: .6px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(56, 189, 248, 0.15);
+    background: rgba(56, 189, 248, 0.12);
     color: var(--accent);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
   }
-  h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; color: #fff; }
   .sub { font-size: 11px; color: var(--muted); margin-bottom: 14px; line-height: 1.4; }
 
-  /* Segmented Controls */
-  .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; }
-  .geo-select { width: 100%; padding: 7px 10px; background: var(--card-bg); color: #fff; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; outline: none; transition: border-color .15s; }
-  .geo-select:hover, .geo-select:focus { border-color: var(--accent, #6366f1); }
-  .row { display: flex; gap: 6px; margin-bottom: 12px; }
-  .seg {
-    flex: 1;
-    display: flex;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 2px;
-    overflow: hidden;
-  }
-  .seg button {
-    flex: 1;
-    padding: 6px 3px;
-    border: 0;
-    border-radius: 6px;
-    background: transparent;
+  .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     color: var(--muted);
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all .18s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .seg button:hover:not(.active) { color: var(--text); background: rgba(255, 255, 255, 0.04); }
-  .seg button.active {
-    background: var(--accent);
-    color: #03131e;
     font-weight: 700;
-    box-shadow: 0 2px 8px var(--accent-glow);
+    margin: 12px 0 6px 0;
   }
+  .row { display: flex; gap: 8px; align-items: center; }
 
-  /* Legend */
-  .legend-box { margin: 12px 0; padding: 10px 12px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); }
-  .legend-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; }
-  .score-legend { display: flex; flex-direction: column; gap: 4px; }
-  .legend-bar-wrap { position: relative; width: 100%; }
-  .legend-bar {
-    height: 8px;
-    border-radius: 4px;
-    background: linear-gradient(90deg, #d73027 0%, #fc8d59 25%, #fee08b 50%, #91cf60 75%, #1a9850 100%);
-  }
-  .legend-ticks { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); font-weight: 600; margin-top: 4px; }
-
-  /* Profiles Legend */
-  .profile-legend { display: none; flex-direction: column; gap: 6px; margin-top: 4px; }
-  .profile-legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 11px; }
-  .profile-badge { display: flex; align-items: center; gap: 6px; }
-  .profile-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .profile-count { font-size: 10px; color: var(--muted); font-weight: 600; }
-
-  /* Stats Section */
-  #stats {
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.6;
-    margin-top: 10px;
-    border-top: 1px solid var(--border);
-    padding-top: 10px;
-  }
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 6px; }
-  .stat-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 8px;
-  }
-  .stat-card-title { font-size: 9px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
-  .stat-card-value { font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px; }
-  .stat-card-sub { font-size: 8px; color: var(--muted); margin-top: 1px; }
-
-  .stat-bar-container { height: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; margin-top: 3px; overflow: hidden; }
-  .stat-bar-fill { height: 100%; border-radius: 2px; }
-
-  /* Simulation */
-  details {
-    margin-top: 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--card-bg);
-    overflow: hidden;
-  }
-  summary {
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    color: var(--text);
-    padding: 9px 12px;
-    user-select: none;
-    transition: background .15s;
-    list-style-type: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  summary::-webkit-details-marker { display: none; }
-  summary::after { content: "›"; font-size: 14px; transition: transform .2s; }
-  details[open] summary::after { transform: rotate(90deg); }
-  summary:hover { background: rgba(255, 255, 255, 0.03); }
-  .sim-content { padding: 10px 12px; border-top: 1px solid var(--border); }
-  label.slider-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin: 6px 0 2px; }
-  label.slider-label b { color: var(--text); font-weight: 600; }
-  input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
-  .btn {
+  /* Custom Cascading Selectors */
+  .geo-select {
     width: 100%;
-    margin-top: 8px;
-    padding: 7px;
+    background: var(--card-bg);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--accent);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 8px;
     font-size: 11px;
     font-weight: 600;
+    font-family: inherit;
+    outline: none;
     cursor: pointer;
     transition: all .15s;
   }
-  .btn:hover { background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.4); }
-  .btn.btn-reset { color: var(--muted); }
-  .btn.btn-reset:hover { background: rgba(255, 255, 255, 0.05); color: #fff; border-color: var(--muted); }
-  .btn.btn-compare { background: rgba(56, 189, 248, 0.15); border-color: var(--accent); color: #fff; margin-top: 12px; }
-  .btn.btn-compare:hover { background: var(--accent); color: #03131e; }
-  #simState { font-size: 10px; color: var(--accent); margin-top: 6px; text-align: center; }
+  .geo-select:focus { border-color: var(--accent); }
+  .geo-select option { background: #0f172a; color: #fff; }
 
-  /* Detail Panel */
-  .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-  #detail h2 { font-size: 12px; color: var(--accent); word-break: break-all; font-family: monospace; font-weight: 600; }
-  .close-btn {
-    background: transparent;
-    border: 0;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 14px;
-    line-height: 1;
-    padding: 2px 6px;
-    border-radius: 4px;
+  /* Segmented Controls */
+  .seg {
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    padding: 2px;
+    width: 100%;
   }
-  .close-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+  .seg button {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 6px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .seg button.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+
+  /* Legend */
+  .legend-box { margin-top: 14px; }
+  .legend-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .legend-bar-wrap { width: 100%; height: 8px; border-radius: 4px; overflow: hidden; }
+  .legend-bar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #d73027 0%, #fc8d59 25%, #fee08b 50%, #91cf60 75%, #1a9850 100%);
+  }
+  .legend-ticks { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+  .profile-legend { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+  .profile-legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 10px; }
+  .profile-badge { display: flex; align-items: center; gap: 6px; }
+  .profile-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .profile-count { color: var(--muted); font-size: 9px; font-weight: 600; }
+
+  /* Details & Simulation */
+  details { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+  summary { font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer; user-select: none; }
+  summary:hover { color: #fff; }
+  .sim-content { margin-top: 10px; font-size: 11px; }
+  .slider-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-bottom: 2px; }
+  input[type=range] { width: 100%; margin-bottom: 6px; accent-color: var(--accent); }
+  .btn {
+    width: 100%;
+    background: var(--accent);
+    color: #03131e;
+    font-weight: 700;
+    border: none;
+    padding: 7px;
+    border-radius: 8px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+    margin-top: 6px;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn-reset { background: rgba(255, 255, 255, 0.08); color: #fff; margin-top: 4px; }
+  .btn-compare { background: #38bdf8; color: #03131e; margin: 10px 0; }
+  #simState { font-size: 10px; color: var(--accent); margin-top: 4px; text-align: center; }
+
+  /* Stats summary box */
+  #stats {
+    margin-top: 12px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .stat-card {
+    background: var(--card-bg);
+    border-radius: 6px;
+    padding: 6px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  .stat-card-title { font-size: 9px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  .stat-card-value { font-size: 14px; font-weight: 800; color: #fff; margin: 2px 0; }
+  .stat-card-sub { font-size: 8px; color: var(--muted); }
+  .stat-bar-container { width: 100%; height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; margin: 3px 0; }
+  .stat-bar-fill { height: 100%; border-radius: 2px; }
+
+  /* Detail Card */
+  .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .detail-header h2 { font-size: 14px; font-weight: 700; color: #fff; font-family: monospace; }
+  .close-btn { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; }
+  .close-btn:hover { color: #fff; }
   .profile-tag {
     display: inline-block;
     padding: 3px 8px;
     border-radius: 6px;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 700;
     margin-bottom: 10px;
   }
-  .score-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; margin-bottom: 6px; }
-  .score-line { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
-  .score-bar-bg { height: 4px; background: rgba(255, 255, 255, 0.08); border-radius: 2px; overflow: hidden; }
+  .score-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+  }
+  .score-line { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
+  .score-line b { font-size: 14px; font-weight: 800; color: #fff; }
+  .score-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
   .score-bar-fill { height: 100%; border-radius: 2px; }
 
-  #detail table { width: 100%; font-size: 11px; border-collapse: collapse; margin-top: 10px; }
-  #detail td { padding: 3px 0; color: var(--muted); border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
-  #detail td:last-child { text-align: right; color: var(--text); font-weight: 600; }
-
-  /* Comparison Table */
-  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
-  .compare-col { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
-  .compare-header { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; font-family: monospace; }
-  .delta-pill { font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; }
-  .delta-pos { background: rgba(16, 185, 129, 0.2); color: #10b981; }
-  .delta-neg { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
+  td { padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+  td:last-child { text-align: right; font-weight: 700; color: #fff; }
 
   /* MapLibre Hover Popup */
   .maplibregl-popup-content {
-    background: rgba(15, 23, 34, 0.94) !important;
-    border: 1px solid var(--panel-border) !important;
-    border-radius: 8px !important;
-    padding: 8px 12px !important;
+    background: var(--panel-bg) !important;
     color: var(--text) !important;
+    border: 1px solid var(--panel-border) !important;
+    border-radius: 10px !important;
+    padding: 8px 12px !important;
     font-family: inherit !important;
     font-size: 11px !important;
-    backdrop-filter: blur(8px) !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.6) !important;
+    backdrop-filter: blur(12px) !important;
   }
-  .maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: rgba(15, 23, 34, 0.94) !important; }
-  .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: rgba(15, 23, 34, 0.94) !important; }
-  .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: rgba(15, 23, 34, 0.94) !important; }
-  .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: rgba(15, 23, 34, 0.94) !important; }
+  .maplibregl-popup-tip { border-top-color: var(--panel-bg) !important; }
 </style>
 </head>
 <body>
@@ -431,16 +447,22 @@
   <div class="search-results" id="searchResults"></div>
 </div>
 
-<!-- Basemap Switcher -->
-<div id="basemapSwitcher">
-  <button class="bm-btn active" data-style="dark">Sombre</button>
-  <button class="bm-btn" data-style="light">Clair</button>
-  <button class="bm-btn" data-style="voyager">Terrain</button>
+<!-- Top Right Controls: Language & Basemaps -->
+<div id="topRightBar">
+  <div id="langSwitcher" class="switch-group" aria-label="Langue / Language">
+    <button class="bm-btn active" data-lang="fr" id="btnLangFr">FR</button>
+    <button class="bm-btn" data-lang="en" id="btnLangEn">EN</button>
+  </div>
+  <div id="basemapSwitcher" class="switch-group" aria-label="Fond de carte">
+    <button class="bm-btn active" data-style="dark" id="bmDark">Sombre</button>
+    <button class="bm-btn" data-style="light" id="bmLight">Clair</button>
+    <button class="bm-btn" data-style="voyager" id="bmVoyager">Terrain</button>
+  </div>
 </div>
 
 <!-- Compare Mode Active Banner -->
 <div id="compareBanner">
-  <span>⚖️ Mode comparaison : sélectionnez une 2e zone sur la carte</span>
+  <span id="compareBannerText">⚖️ Mode comparaison : sélectionnez une 2e zone sur la carte</span>
   <button id="cancelCompare">Annuler</button>
 </div>
 
@@ -450,30 +472,30 @@
     <h1>ZoneScore</h1>
     <span class="badge-tag" id="cityBadge">Ottawa (ON)</span>
   </div>
-  <div class="sub">Plateforme d'analyse et scoring spatial multi-métropoles sur grille H3.</div>
+  <div class="sub" id="brandSub">Plateforme d'analyse et scoring spatial multi-métropoles sur grille H3.</div>
 
-  <div class="section-label">🌎 Pays › Province / État › Ville</div>
+  <div class="section-label" id="lblHierarchy">🌎 Pays › Province / État › Ville</div>
   <div class="row" style="margin-bottom: 10px; flex-direction: column; gap: 6px;">
     <select id="countrySelect" aria-label="Pays" class="geo-select"></select>
     <select id="provinceSelect" aria-label="Province ou État" class="geo-select"></select>
     <select id="citySelect" aria-label="Ville" class="geo-select"></select>
   </div>
 
-  <div class="section-label">Métrique affichée</div>
+  <div class="section-label" id="lblMetric">Métrique affichée</div>
   <div class="row">
     <div class="seg" id="metricSeg">
-      <button data-metric="safety_score" class="active">Sécurité</button>
-      <button data-metric="calmness_score">Quiétude</button>
-      <button data-metric="family_score">Familial</button>
-      <button data-metric="profile">Profils</button>
+      <button data-metric="safety_score" id="btnMetricSafety" class="active">Sécurité</button>
+      <button data-metric="calmness_score" id="btnMetricCalm">Quiétude</button>
+      <button data-metric="family_score" id="btnMetricFamily">Familial</button>
+      <button data-metric="profile" id="btnMetricProfile">Profils</button>
     </div>
   </div>
 
-  <div class="section-label">Résolution spatiale H3</div>
+  <div class="section-label" id="lblRes">Résolution spatiale H3</div>
   <div class="row">
     <div class="seg" id="resSeg">
-      <button data-res="8" class="active">Rés. 8 (~450m)</button>
-      <button data-res="9">Rés. 9 (~170m)</button>
+      <button data-res="8" id="btnRes8" class="active">Rés. 8 (~450m)</button>
+      <button data-res="9" id="btnRes9">Rés. 9 (~170m)</button>
     </div>
   </div>
 
@@ -484,16 +506,16 @@
         <div class="legend-bar" id="legendBar"></div>
       </div>
       <div class="legend-ticks">
-        <span>0 (Faible)</span>
-        <span>50 (Médiane)</span>
-        <span>100 (Élevé)</span>
+        <span id="tickLow">0 (Faible)</span>
+        <span id="tickMed">50 (Médiane)</span>
+        <span id="tickHigh">100 (Élevé)</span>
       </div>
     </div>
     <div class="profile-legend" id="profileLegend"></div>
   </div>
 
   <details>
-    <summary>Simulation « et si… » (Poids du modèle)</summary>
+    <summary id="simSummary">Simulation « et si… » (Poids du modèle)</summary>
     <div class="sim-content">
       <div id="sliders"></div>
       <button class="btn" id="applySim">Appliquer la simulation</button>
@@ -514,22 +536,22 @@
   <div id="dProfileTag" class="profile-tag"></div>
   <div id="dLiveBadge" style="display:none; margin-bottom:8px; padding:4px 8px; border-radius:6px; background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; font-size:10px; font-weight:700; align-items:center; gap:5px;">
     <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; animation: pulse 1.5s infinite;"></span>
-    <span>Données OpenStreetMap en Direct (Live)</span>
+    <span id="dLiveBadgeText">Données OpenStreetMap en Direct (Live)</span>
   </div>
   <div id="dProfile" style="display:none"></div>
 
   <div class="score-card">
-    <div class="score-line"><span>Indice Sécurité</span><b id="dSafety"></b></div>
+    <div class="score-line"><span id="lblDetailSafety">Indice Sécurité</span><b id="dSafety"></b></div>
     <div class="score-bar-bg"><div id="dSafetyBar" class="score-bar-fill"></div></div>
   </div>
 
   <div class="score-card">
-    <div class="score-line"><span>Indice Quiétude</span><b id="dCalm"></b></div>
+    <div class="score-line"><span id="lblDetailCalm">Indice Quiétude</span><b id="dCalm"></b></div>
     <div class="score-bar-bg"><div id="dCalmBar" class="score-bar-fill"></div></div>
   </div>
 
   <div class="score-card">
-    <div class="score-line"><span>Indice Familial</span><b id="dFamily"></b></div>
+    <div class="score-line"><span id="lblDetailFamily">Indice Familial</span><b id="dFamily"></b></div>
     <div class="score-bar-bg"><div id="dFamilyBar" class="score-bar-fill"></div></div>
   </div>
 
@@ -537,7 +559,7 @@
 
   <table id="dCounts"></table>
   <div id="dLivePoiContainer" style="display:none; margin-top:10px;">
-    <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Lieux récents détectés (OSM Live) :</div>
+    <div id="dLivePoiHeader" style="font-size:10px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Lieux récents détectés (OSM Live) :</div>
     <ul id="dLivePois" style="padding-left:14px; font-size:10px; color:#cbd5e1; margin:0; max-height:120px; overflow-y:auto; line-height:1.4;"></ul>
   </div>
 </div>
@@ -545,7 +567,7 @@
 <!-- Modal Comparator Panel -->
 <div id="comparePanel">
   <div class="detail-header">
-    <h3 style="font-size:14px; font-weight:700; color:#fff;">Comparateur de Zones Urbaines</h3>
+    <h3 id="compareModalTitle" style="font-size:14px; font-weight:700; color:#fff;">Comparateur de Zones Urbaines</h3>
     <button class="close-btn" id="closeCompare">✕</button>
   </div>
   <div class="compare-grid" id="compareGrid"></div>
@@ -554,8 +576,194 @@
 <script>
 "use strict";
 const API = "";
+
+/* ---- I18N Dictionary (FR & EN) ---- */
+const I18N = {
+  fr: {
+    appTitle: "ZoneScore — GeoSafe Urban Platform",
+    sub: "Plateforme d'analyse et scoring spatial multi-métropoles sur grille H3.",
+    geoHierarchy: "🌎 Pays › Province / État › Ville",
+    metricLabel: "Métrique affichée",
+    resolutionLabel: "Résolution spatiale H3",
+    metrics: {
+      safety_score: "Sécurité",
+      calmness_score: "Quiétude",
+      family_score: "Familial",
+      profile: "Profils"
+    },
+    res: {
+      8: "Rés. 8 (~450m)",
+      9: "Rés. 9 (~170m)"
+    },
+    basemaps: {
+      dark: "Sombre",
+      light: "Clair",
+      voyager: "Terrain"
+    },
+    legend: {
+      scoreTitle: "Échelle de score (percentile)",
+      safetyTitle: "Indice de Sécurité",
+      calmTitle: "Indice de Quiétude",
+      familyTitle: "Indice Familial",
+      profileTitle: "Profils Urbains (K-Means)",
+      low: "0 (Faible)",
+      median: "50 (Médiane)",
+      high: "100 (Élevé)"
+    },
+    simulation: {
+      summary: "Simulation « et si… » (Poids du modèle)",
+      apply: "Appliquer la simulation",
+      reset: "Réinitialiser",
+      activeState: "Simulation active — scores recalculés en direct.",
+      safetySub: "Sécurité",
+      calmSub: "Quiétude",
+      familySub: "Familial"
+    },
+    searchPlaceholder: (cityName) => `Rechercher une adresse à ${cityName}...`,
+    searchNoResult: (ccName) => `Aucun résultat trouvé (${ccName})`,
+    statsLoading: "Chargement des données statistiques…",
+    statsCellCount: (n, res) => `${n} cellules H3`,
+    statsResolution: (res) => `Résolution ${res}`,
+    statsP10P90: (p10, p90) => `P10: ${p10} · P90: ${p90}`,
+    detail: {
+      liveBadge: "Données OpenStreetMap en Direct (Live)",
+      safetyIndex: "Indice Sécurité",
+      calmIndex: "Indice Quiétude",
+      familyIndex: "Indice Familial",
+      compareBtn: "⚖️ Comparer avec une autre zone",
+      recentPois: "Lieux récents détectés (OSM Live) :",
+      close: "Fermer"
+    },
+    compareBanner: {
+      text: "⚖️ Mode comparaison : sélectionnez une 2e zone sur la carte",
+      cancel: "Annuler"
+    },
+    comparator: {
+      title: "Comparateur de Zones Urbaines",
+      zoneA: (h3) => `Zone A: ${h3}…`,
+      zoneB: (h3) => `Zone B: ${h3}…`
+    },
+    features: {
+      streetlight: "Éclairage public",
+      police_fire: "Police & Pompiers",
+      transit_stop: "Arrêts transport",
+      school: "Écoles & Universités",
+      park_green: "Parcs & Espaces verts",
+      bar_nightlife: "Bars & Vie nocturne",
+      restaurant_cafe: "Restaurants & Cafés",
+      shop_retail: "Commerces",
+      industrial: "Zones industrielles",
+      major_road: "Grands axes routiers"
+    },
+    profiles: {
+      "Vibrant nightlife district": "Quartier animé & vie nocturne",
+      "Green haven": "Havre de paix & verdure",
+      "Commercial & services hub": "Pôle commercial & services",
+      "Industrial / logistics corridor": "Couloir industriel & logistique",
+      "High-traffic artery zone": "Axe de circulation dense",
+      "Tranquil residential": "Résidentiel paisible"
+    },
+    countries: {
+      CA: "Canada",
+      US: "États-Unis"
+    }
+  },
+  en: {
+    appTitle: "ZoneScore — GeoSafe Urban Platform",
+    sub: "Multi-metro spatial analytics and scoring platform on H3 grid.",
+    geoHierarchy: "🌎 Country › Province / State › City",
+    metricLabel: "Displayed Metric",
+    resolutionLabel: "H3 Spatial Resolution",
+    metrics: {
+      safety_score: "Safety",
+      calmness_score: "Calmness",
+      family_score: "Family",
+      profile: "Profiles"
+    },
+    res: {
+      8: "Res. 8 (~450m)",
+      9: "Res. 9 (~170m)"
+    },
+    basemaps: {
+      dark: "Dark",
+      light: "Light",
+      voyager: "Terrain"
+    },
+    legend: {
+      scoreTitle: "Score Scale (Percentile)",
+      safetyTitle: "Safety Index",
+      calmTitle: "Calmness Index",
+      familyTitle: "Family-Friendly Index",
+      profileTitle: "Urban Profiles (K-Means)",
+      low: "0 (Low)",
+      median: "50 (Median)",
+      high: "100 (High)"
+    },
+    simulation: {
+      summary: "“What-if…” Simulation (Model Weights)",
+      apply: "Apply simulation",
+      reset: "Reset",
+      activeState: "Simulation active — live recomputed scores.",
+      safetySub: "Safety",
+      calmSub: "Calmness",
+      familySub: "Family"
+    },
+    searchPlaceholder: (cityName) => `Search an address in ${cityName}...`,
+    searchNoResult: (ccName) => `No results found (${ccName})`,
+    statsLoading: "Loading statistical data…",
+    statsCellCount: (n, res) => `${n} H3 cells`,
+    statsResolution: (res) => `Resolution ${res}`,
+    statsP10P90: (p10, p90) => `P10: ${p10} · P90: ${p90}`,
+    detail: {
+      liveBadge: "Live OpenStreetMap Data",
+      safetyIndex: "Safety Score",
+      calmIndex: "Calmness Score",
+      familyIndex: "Family Score",
+      compareBtn: "⚖️ Compare with another zone",
+      recentPois: "Recent venues detected (OSM Live):",
+      close: "Close"
+    },
+    compareBanner: {
+      text: "⚖️ Compare mode: select a 2nd zone on the map",
+      cancel: "Cancel"
+    },
+    comparator: {
+      title: "Urban Zone Comparator",
+      zoneA: (h3) => `Zone A: ${h3}…`,
+      zoneB: (h3) => `Zone B: ${h3}…`
+    },
+    features: {
+      streetlight: "Streetlights",
+      police_fire: "Police & Fire",
+      transit_stop: "Transit stops",
+      school: "Schools & Universities",
+      park_green: "Parks & Greenery",
+      bar_nightlife: "Bars & Nightlife",
+      restaurant_cafe: "Restaurants & Cafés",
+      shop_retail: "Retail stores",
+      industrial: "Industrial zones",
+      major_road: "Major roads"
+    },
+    profiles: {
+      "Vibrant nightlife district": "Vibrant nightlife district",
+      "Green haven": "Green haven",
+      "Commercial & services hub": "Commercial & services hub",
+      "Industrial / logistics corridor": "Industrial / logistics corridor",
+      "High-traffic artery zone": "High-traffic artery zone",
+      "Tranquil residential": "Tranquil residential"
+    },
+    countries: {
+      CA: "Canada",
+      US: "United States"
+    }
+  }
+};
+
+function t() {
+  return I18N[state.lang] || I18N.fr;
+}
+
 // All supported metros (Canada + USA), filled from /api/cities at startup.
-// Shape: { id: { name, province, provinceName, country, countryName, center:[lng,lat], zoom } }
 const SUPPORTED_CITIES = {};
 
 async function loadCities() {
@@ -582,8 +790,14 @@ function fillSelect(el, items, selected) {
 function syncSelectors(cityId) {
   const cfg = SUPPORTED_CITIES[cityId];
   if (!cfg) return;
+  const lang = state.lang || "fr";
+  const tr = t();
+
   const countries = new Map();
-  Object.values(SUPPORTED_CITIES).forEach((c) => countries.set(c.country, c.countryName));
+  Object.values(SUPPORTED_CITIES).forEach((c) => {
+    const cName = tr.countries[c.country] || c.countryName;
+    countries.set(c.country, cName);
+  });
   fillSelect(document.getElementById("countrySelect"), [...countries], cfg.country);
 
   const provinces = new Map();
@@ -599,6 +813,7 @@ function syncSelectors(cityId) {
 }
 
 const state = {
+  lang: localStorage.getItem("zonescore_lang") || (navigator.language && navigator.language.startsWith("fr") ? "fr" : "en"),
   city: "ottawa",
   metric: "safety_score",
   resolution: 8,
@@ -697,7 +912,7 @@ async function switchCity(cityId, fly = true) {
   const badgeEl = document.getElementById("cityBadge");
   if (badgeEl) badgeEl.textContent = `${cfg.name} (${cfg.province})`;
   const searchInput = document.getElementById("searchInput");
-  if (searchInput) searchInput.placeholder = `Rechercher une adresse à ${cfg.name}...`;
+  if (searchInput) searchInput.placeholder = t().searchPlaceholder(cfg.name);
 
   if (fly) {
     map.flyTo({ center: cfg.center, zoom: cfg.zoom, essential: true });
@@ -756,16 +971,18 @@ function onZoneHover(e) {
   const props = e.features[0].properties;
   const color = PROFILE_COLORS[props.profile] || "#6366f1";
   const fam = props.family_score !== undefined ? Number(props.family_score).toFixed(1) : "-";
+  const tr = t();
+  const profName = tr.profiles[props.profile] || props.profile;
   const content = `
     <div style="font-weight:700; margin-bottom:3px; display:flex; align-items:center; gap:5px;">
       <span style="width:7px; height:7px; border-radius:50%; background:${color}; display:inline-block;"></span>
-      ${props.profile}
+      ${profName}
     </div>
     <div style="color:var(--muted); font-size:10px; font-family:monospace;">${props.h3}</div>
     <div style="margin-top:4px; display:flex; flex-direction:column; gap:2px; font-size:10px;">
-      <div style="display:flex; justify-content:space-between; gap:12px;"><span>Sécurité:</span><b>${Number(props.safety_score).toFixed(1)}</b></div>
-      <div style="display:flex; justify-content:space-between; gap:12px;"><span>Quiétude:</span><b>${Number(props.calmness_score).toFixed(1)}</b></div>
-      <div style="display:flex; justify-content:space-between; gap:12px;"><span>Familial:</span><b>${fam}</b></div>
+      <div style="display:flex; justify-content:space-between; gap:12px;"><span>${tr.metrics.safety_score}:</span><b>${Number(props.safety_score).toFixed(1)}</b></div>
+      <div style="display:flex; justify-content:space-between; gap:12px;"><span>${tr.metrics.calmness_score}:</span><b>${Number(props.calmness_score).toFixed(1)}</b></div>
+      <div style="display:flex; justify-content:space-between; gap:12px;"><span>${tr.metrics.family_score}:</span><b>${fam}</b></div>
     </div>
   `;
   hoverPopup.setLngLat(e.lngLat).setHTML(content).addTo(map);
@@ -780,26 +997,26 @@ function updateLegendUI() {
   const isProfile = state.metric === "profile";
   document.getElementById("scoreLegend").style.display = isProfile ? "none" : "flex";
   document.getElementById("profileLegend").style.display = isProfile ? "flex" : "none";
-  let title = "Indice de Sécurité";
-  if (state.metric === "calmness_score") title = "Indice de Quiétude";
-  else if (state.metric === "family_score") title = "Indice Familial";
-  else if (isProfile) title = "Profils Urbains (K-Means)";
+  const tr = t();
+  let title = tr.legend.safetyTitle;
+  if (state.metric === "calmness_score") title = tr.legend.calmTitle;
+  else if (state.metric === "family_score") title = tr.legend.familyTitle;
+  else if (isProfile) title = tr.legend.profileTitle;
   document.getElementById("legendTitle").textContent = title;
 }
 
 let lastStats = null;
-async function loadStats() {
-  lastStats = await fetchJSON(`${API}/api/stats?city=${state.city}&resolution=${state.resolution}`);
-  const s = lastStats;
-
+function renderStatsHTML(s) {
+  const tr = t();
   const profBox = document.getElementById("profileLegend");
   profBox.innerHTML = Object.entries(s.profiles).map(([name, n]) => {
     const col = PROFILE_COLORS[name] || "#6366f1";
+    const label = tr.profiles[name] || name;
     return `
       <div class="profile-legend-item">
         <div class="profile-badge">
           <span class="profile-dot" style="background:${col}"></span>
-          <span>${name}</span>
+          <span>${label}</span>
         </div>
         <span class="profile-count">${n}</span>
       </div>
@@ -808,47 +1025,49 @@ async function loadStats() {
 
   document.getElementById("stats").innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-      <span style="font-weight:600; color:#fff;">${s.zone_count} cellules H3</span>
-      <span style="font-size:10px; color:var(--muted);">Résolution ${s.resolution}</span>
+      <span style="font-weight:600; color:#fff;">${tr.statsCellCount(s.zone_count, s.resolution)}</span>
+      <span style="font-size:10px; color:var(--muted);">${tr.statsResolution(s.resolution)}</span>
     </div>
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-card-title">Sécurité</div>
+        <div class="stat-card-title">${tr.metrics.safety_score}</div>
         <div class="stat-card-value">${s.safety_mean}</div>
         <div class="stat-bar-container"><div class="stat-bar-fill" style="width:${s.safety_mean}%; background:#38bdf8;"></div></div>
-        <div class="stat-card-sub">P10: ${s.safety_p10} · P90: ${s.safety_p90}</div>
+        <div class="stat-card-sub">${tr.statsP10P90(s.safety_p10, s.safety_p90)}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-title">Quiétude</div>
+        <div class="stat-card-title">${tr.metrics.calmness_score}</div>
         <div class="stat-card-value">${s.calmness_mean}</div>
         <div class="stat-bar-container"><div class="stat-bar-fill" style="width:${s.calmness_mean}%; background:#10b981;"></div></div>
-        <div class="stat-card-sub">P10: ${s.calmness_p10} · P90: ${s.calmness_p90}</div>
+        <div class="stat-card-sub">${tr.statsP10P90(s.calmness_p10, s.calmness_p90)}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-title">Familial</div>
+        <div class="stat-card-title">${tr.metrics.family_score}</div>
         <div class="stat-card-value">${s.family_mean ?? s.safety_mean}</div>
         <div class="stat-bar-container"><div class="stat-bar-fill" style="width:${s.family_mean ?? s.safety_mean}%; background:#f59e0b;"></div></div>
-        <div class="stat-card-sub">P10: ${s.family_p10 ?? s.safety_p10} · P90: ${s.family_p90 ?? s.safety_p90}</div>
+        <div class="stat-card-sub">${tr.statsP10P90(s.family_p10 ?? s.safety_p10, s.family_p90 ?? s.safety_p90)}</div>
       </div>
     </div>
   `;
 }
 
-async function showDetail(cell) {
-  state.selectedCell = cell;
-  syncURL();
-  const d = await fetchJSON(`${API}/api/zones/${cell}`);
-  state.zoneA = d;
+async function loadStats() {
+  lastStats = await fetchJSON(`${API}/api/stats?city=${state.city}&resolution=${state.resolution}`);
+  renderStatsHTML(lastStats);
+}
 
+function updateDetailContent(d) {
+  const tr = t();
   document.getElementById("detailTitle").textContent = d.h3;
 
   const color = PROFILE_COLORS[d.profile] || "#6366f1";
   const tag = document.getElementById("dProfileTag");
-  tag.textContent = d.profile;
+  const profName = tr.profiles[d.profile] || d.profile;
+  tag.textContent = profName;
   tag.style.background = `${color}20`;
   tag.style.color = color;
   tag.style.border = `1px solid ${color}50`;
-  document.getElementById("dProfile").textContent = d.profile;
+  document.getElementById("dProfile").textContent = profName;
 
   document.getElementById("dSafety").textContent = d.safety_score.toFixed(1);
   const safetyBar = document.getElementById("dSafetyBar");
@@ -867,7 +1086,7 @@ async function showDetail(cell) {
   famBar.style.background = famScore >= 50 ? "#10b981" : "#f59e0b";
 
   document.getElementById("dCounts").innerHTML = Object.entries(d.counts)
-    .map(([k, v]) => `<tr><td>${k.replace("_", " ")}</td><td>${v}</td></tr>`).join("");
+    .map(([k, v]) => `<tr><td>${tr.features[k] || k.replace("_", " ")}</td><td>${v}</td></tr>`).join("");
 
   const liveBadge = document.getElementById("dLiveBadge");
   const livePoiCont = document.getElementById("dLivePoiContainer");
@@ -886,7 +1105,14 @@ async function showDetail(cell) {
     liveBadge.style.display = "none";
     livePoiCont.style.display = "none";
   }
+}
 
+async function showDetail(cell) {
+  state.selectedCell = cell;
+  syncURL();
+  const d = await fetchJSON(`${API}/api/zones/${cell}`);
+  state.zoneA = d;
+  updateDetailContent(d);
   document.getElementById("detail").style.display = "block";
 }
 
@@ -933,6 +1159,7 @@ async function completeComparison(cellB) {
 function renderCompareModal(za, zb) {
   const modal = document.getElementById("comparePanel");
   const grid = document.getElementById("compareGrid");
+  const tr = t();
 
   const diffTag = (valA, valB) => {
     const diff = valB - valA;
@@ -943,29 +1170,31 @@ function renderCompareModal(za, zb) {
   };
 
   const allKeys = Array.from(new Set([...Object.keys(za.counts), ...Object.keys(zb.counts)]));
+  const profA = tr.profiles[za.profile] || za.profile;
+  const profB = tr.profiles[zb.profile] || zb.profile;
 
   grid.innerHTML = `
     <div class="compare-col">
-      <div class="compare-header">Zone A: ${za.h3.slice(0, 10)}…</div>
-      <div style="font-size:11px; font-weight:600; margin-bottom:8px; color:${PROFILE_COLORS[za.profile] || '#fff'}">${za.profile}</div>
-      <div class="score-line"><span>Sécurité</span><b>${za.safety_score.toFixed(1)}</b></div>
-      <div class="score-line"><span>Quiétude</span><b>${za.calmness_score.toFixed(1)}</b></div>
-      <div class="score-line"><span>Familial</span><b>${(za.family_score ?? 50).toFixed(1)}</b></div>
+      <div class="compare-header">${tr.comparator.zoneA(za.h3.slice(0, 10))}</div>
+      <div style="font-size:11px; font-weight:600; margin-bottom:8px; color:${PROFILE_COLORS[za.profile] || '#fff'}">${profA}</div>
+      <div class="score-line"><span>${tr.metrics.safety_score}</span><b>${za.safety_score.toFixed(1)}</b></div>
+      <div class="score-line"><span>${tr.metrics.calmness_score}</span><b>${za.calmness_score.toFixed(1)}</b></div>
+      <div class="score-line"><span>${tr.metrics.family_score}</span><b>${(za.family_score ?? 50).toFixed(1)}</b></div>
       <table style="width:100%; font-size:10px; margin-top:8px;">
-        ${allKeys.map(k => `<tr><td style="color:var(--muted)">${k.replace('_', ' ')}</td><td style="text-align:right"><b>${za.counts[k] ?? 0}</b></td></tr>`).join('')}
+        ${allKeys.map(k => `<tr><td style="color:var(--muted)">${tr.features[k] || k.replace('_', ' ')}</td><td style="text-align:right"><b>${za.counts[k] ?? 0}</b></td></tr>`).join('')}
       </table>
     </div>
     <div class="compare-col">
-      <div class="compare-header">Zone B: ${zb.h3.slice(0, 10)}…</div>
-      <div style="font-size:11px; font-weight:600; margin-bottom:8px; color:${PROFILE_COLORS[zb.profile] || '#fff'}">${zb.profile}</div>
-      <div class="score-line"><span>Sécurité</span><span><b>${zb.safety_score.toFixed(1)}</b> ${diffTag(za.safety_score, zb.safety_score)}</span></div>
-      <div class="score-line"><span>Quiétude</span><span><b>${zb.calmness_score.toFixed(1)}</b> ${diffTag(za.calmness_score, zb.calmness_score)}</span></div>
-      <div class="score-line"><span>Familial</span><span><b>${(zb.family_score ?? 50).toFixed(1)}</b> ${diffTag(za.family_score ?? 50, zb.family_score ?? 50)}</span></div>
+      <div class="compare-header">${tr.comparator.zoneB(zb.h3.slice(0, 10))}</div>
+      <div style="font-size:11px; font-weight:600; margin-bottom:8px; color:${PROFILE_COLORS[zb.profile] || '#fff'}">${profB}</div>
+      <div class="score-line"><span>${tr.metrics.safety_score}</span><span><b>${zb.safety_score.toFixed(1)}</b> ${diffTag(za.safety_score, zb.safety_score)}</span></div>
+      <div class="score-line"><span>${tr.metrics.calmness_score}</span><span><b>${zb.calmness_score.toFixed(1)}</b> ${diffTag(za.calmness_score, zb.calmness_score)}</span></div>
+      <div class="score-line"><span>${tr.metrics.family_score}</span><span><b>${(zb.family_score ?? 50).toFixed(1)}</b> ${diffTag(za.family_score ?? 50, zb.family_score ?? 50)}</span></div>
       <table style="width:100%; font-size:10px; margin-top:8px;">
         ${allKeys.map(k => {
           const diff = (zb.counts[k] ?? 0) - (za.counts[k] ?? 0);
           const diffStr = diff !== 0 ? `<span style="font-size:9px; color:${diff > 0 ? '#10b981':'#ef4444'}">${diff > 0 ? '+':''}${diff}</span>` : '';
-          return `<tr><td style="color:var(--muted)">${k.replace('_', ' ')}</td><td style="text-align:right"><b>${zb.counts[k] ?? 0}</b> ${diffStr}</td></tr>`;
+          return `<tr><td style="color:var(--muted)">${tr.features[k] || k.replace('_', ' ')}</td><td style="text-align:right"><b>${zb.counts[k] ?? 0}</b> ${diffStr}</td></tr>`;
         }).join('')}
       </table>
     </div>
@@ -991,6 +1220,84 @@ document.getElementById("basemapSwitcher").addEventListener("click", (e) => {
   });
 });
 
+/* ---- Language Switcher ---- */
+function setLanguage(lang) {
+  if (!I18N[lang]) return;
+  state.lang = lang;
+  localStorage.setItem("zonescore_lang", lang);
+  document.querySelectorAll("#langSwitcher .bm-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
+  applyLanguage();
+  syncURL();
+}
+
+function applyLanguage() {
+  const tr = t();
+  document.documentElement.lang = state.lang;
+  document.title = tr.appTitle;
+
+  document.getElementById("brandSub").textContent = tr.sub;
+  document.getElementById("lblHierarchy").textContent = tr.geoHierarchy;
+  document.getElementById("lblMetric").textContent = tr.metricLabel;
+  document.getElementById("lblRes").textContent = tr.resolutionLabel;
+
+  document.getElementById("btnMetricSafety").textContent = tr.metrics.safety_score;
+  document.getElementById("btnMetricCalm").textContent = tr.metrics.calmness_score;
+  document.getElementById("btnMetricFamily").textContent = tr.metrics.family_score;
+  document.getElementById("btnMetricProfile").textContent = tr.metrics.profile;
+
+  document.getElementById("btnRes8").textContent = tr.res[8];
+  document.getElementById("btnRes9").textContent = tr.res[9];
+
+  document.getElementById("bmDark").textContent = tr.basemaps.dark;
+  document.getElementById("bmLight").textContent = tr.basemaps.light;
+  document.getElementById("bmVoyager").textContent = tr.basemaps.voyager;
+
+  document.getElementById("tickLow").textContent = tr.legend.low;
+  document.getElementById("tickMed").textContent = tr.legend.median;
+  document.getElementById("tickHigh").textContent = tr.legend.high;
+
+  document.getElementById("simSummary").textContent = tr.simulation.summary;
+  document.getElementById("applySim").textContent = tr.simulation.apply;
+  document.getElementById("resetSim").textContent = tr.simulation.reset;
+  const simStateEl = document.getElementById("simState");
+  if (simStateEl && state.simScores) {
+    simStateEl.textContent = tr.simulation.activeState;
+  }
+
+  document.getElementById("compareBannerText").textContent = tr.compareBanner.text;
+  document.getElementById("cancelCompare").textContent = tr.compareBanner.cancel;
+  document.getElementById("compareModalTitle").textContent = tr.comparator.title;
+
+  document.getElementById("dLiveBadgeText").textContent = tr.detail.liveBadge;
+  document.getElementById("lblDetailSafety").textContent = tr.detail.safetyIndex;
+  document.getElementById("lblDetailCalm").textContent = tr.detail.calmIndex;
+  document.getElementById("lblDetailFamily").textContent = tr.detail.familyIndex;
+  document.getElementById("startCompareBtn").textContent = tr.detail.compareBtn;
+  document.getElementById("dLivePoiHeader").textContent = tr.detail.recentPois;
+
+  const cfg = SUPPORTED_CITIES[state.city];
+  if (cfg) {
+    document.getElementById("searchInput").placeholder = tr.searchPlaceholder(cfg.name);
+  }
+
+  syncSelectors(state.city);
+  updateLegendUI();
+  if (lastStats) renderStatsHTML(lastStats);
+  buildSliders();
+  if (state.selectedCell && state.zoneA) {
+    updateDetailContent(state.zoneA);
+  }
+  if (state.zoneA && state.zoneB && document.getElementById("comparePanel").style.display === "block") {
+    renderCompareModal(state.zoneA, state.zoneB);
+  }
+}
+
+document.getElementById("langSwitcher").addEventListener("click", (e) => {
+  const btn = e.target.closest(".bm-btn");
+  if (!btn || !btn.dataset.lang) return;
+  setLanguage(btn.dataset.lang);
+});
+
 /* ---- Address Search Bar (Nominatim) ---- */
 const searchInput = document.getElementById("searchInput");
 const searchResults = document.getElementById("searchResults");
@@ -1008,13 +1315,14 @@ searchInput.addEventListener("input", (e) => {
   searchDebounce = setTimeout(async () => {
     try {
       const cc = (SUPPORTED_CITIES[state.city]?.country || "CA").toLowerCase();
-      const ccName = cc === "us" ? "USA" : "Canada";
+      const ccName = cc === "us" ? (state.lang === "fr" ? "États-Unis" : "USA") : "Canada";
       const q = encodeURIComponent(val + ", " + ccName);
+      const langCode = state.lang === "en" ? "en" : "fr";
       const url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&addressdetails=1&countrycodes=${cc}`;
-      const res = await fetch(url, { headers: { "Accept-Language": "fr" } });
+      const res = await fetch(url, { headers: { "Accept-Language": langCode } });
       const items = await res.json();
       if (!items.length) {
-        searchResults.innerHTML = `<div class="search-item" style="color:var(--muted)">Aucun résultat trouvé (${ccName})</div>`;
+        searchResults.innerHTML = `<div class="search-item" style="color:var(--muted)">${t().searchNoResult(ccName)}</div>`;
       } else {
         searchResults.innerHTML = items.map(it => `
           <div class="search-item" data-lat="${it.lat}" data-lng="${it.lon}" data-name="${it.display_name}">
@@ -1068,6 +1376,7 @@ searchResults.addEventListener("click", async (e) => {
 /* ---- Deep Linking URL Sync ---- */
 function syncURL() {
   const p = new URLSearchParams();
+  p.set("lang", state.lang);
   p.set("city", state.city);
   p.set("res", state.resolution);
   p.set("metric", state.metric);
@@ -1078,6 +1387,10 @@ function syncURL() {
 
 function restoreFromURL() {
   const p = new URLSearchParams(window.location.search);
+  if (p.has("lang")) {
+    const l = p.get("lang").toLowerCase();
+    if (["fr", "en"].includes(l)) state.lang = l;
+  }
   if (p.has("city")) {
     const c = p.get("city").toLowerCase();
     if (SUPPORTED_CITIES[c]) state.city = c;
@@ -1090,12 +1403,16 @@ function restoreFromURL() {
     const m = p.get("metric");
     if (["safety_score", "calmness_score", "family_score", "profile"].includes(m)) state.metric = m;
   }
+
+  // Sync Language buttons
+  document.querySelectorAll("#langSwitcher .bm-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === state.lang));
+
   syncSelectors(state.city);
   const cfg = SUPPORTED_CITIES[state.city];
   if (cfg) {
     const badge = document.getElementById("cityBadge");
     if (badge) badge.textContent = `${cfg.name} (${cfg.province})`;
-    searchInput.placeholder = `Rechercher une adresse à ${cfg.name}...`;
+    searchInput.placeholder = t().searchPlaceholder(cfg.name);
     map.setCenter(cfg.center);
     map.setZoom(cfg.zoom);
   }
@@ -1106,21 +1423,25 @@ function restoreFromURL() {
 
 /* ---- simulation sliders ---- */
 async function buildSliders() {
-  state.weights = await fetchJSON(`${API}/api/weights`);
+  if (!state.weights) {
+    state.weights = await fetchJSON(`${API}/api/weights`);
+  }
   const box = document.getElementById("sliders");
   box.innerHTML = "";
+  const tr = t();
+
   for (const feature of state.weights.features) {
     const sw = state.weights.safety_weights[feature] ?? 0;
     const cw = state.weights.calmness_weights[feature] ?? 0;
     const fw = (state.weights.family_weights && state.weights.family_weights[feature]) ?? 0;
-    const name = feature.replace("_", " ");
+    const featLabel = tr.features[feature] || feature.replace("_", " ");
     box.insertAdjacentHTML("beforeend", `
       <div style="margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;">
-        <label class="slider-label"><span>${name} · Sécurité</span><b id="sv_${feature}">${sw.toFixed(2)}</b></label>
+        <label class="slider-label"><span>${featLabel} · ${tr.simulation.safetySub}</span><b id="sv_${feature}">${sw.toFixed(2)}</b></label>
         <input type="range" min="-0.5" max="0.5" step="0.05" value="${sw}" data-kind="safety" data-feature="${feature}">
-        <label class="slider-label"><span>${name} · Quiétude</span><b id="cv_${feature}">${cw.toFixed(2)}</b></label>
+        <label class="slider-label"><span>${featLabel} · ${tr.simulation.calmSub}</span><b id="cv_${feature}">${cw.toFixed(2)}</b></label>
         <input type="range" min="-0.5" max="0.5" step="0.05" value="${cw}" data-kind="calmness" data-feature="${feature}">
-        <label class="slider-label"><span>${name} · Familial</span><b id="fv_${feature}">${fw.toFixed(2)}</b></label>
+        <label class="slider-label"><span>${featLabel} · ${tr.simulation.familySub}</span><b id="fv_${feature}">${fw.toFixed(2)}</b></label>
         <input type="range" min="-0.5" max="0.5" step="0.05" value="${fw}" data-kind="family" data-feature="${feature}">
       </div>
     `);
@@ -1130,7 +1451,8 @@ async function buildSliders() {
     if (el.tagName !== "INPUT") return;
     const prefix = el.dataset.kind === "safety" ? "sv_" : (el.dataset.kind === "calmness" ? "cv_" : "fv_");
     const id = prefix + el.dataset.feature;
-    document.getElementById(id).textContent = Number(el.value).toFixed(2);
+    const valEl = document.getElementById(id);
+    if (valEl) valEl.textContent = Number(el.value).toFixed(2);
   });
 }
 
@@ -1153,7 +1475,7 @@ async function applySimulation() {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   });
   state.simScores = Object.fromEntries(sim.zones.map((z) => [z.h3, { s: z.safety_score, c: z.calmness_score, f: z.family_score }]));
-  document.getElementById("simState").textContent = "Simulation active — scores recalculés en direct.";
+  document.getElementById("simState").textContent = t().simulation.activeState;
   renderZones();
 }
 
@@ -1211,6 +1533,7 @@ document.getElementById("resetSim").addEventListener("click", resetSimulation);
 map.on("load", async () => {
   await loadCities();
   const initialCell = restoreFromURL();
+  applyLanguage();
   await buildSliders();
   await loadZones();
   await loadStats();
