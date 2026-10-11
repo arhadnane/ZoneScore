@@ -3,8 +3,8 @@ title: ZoneScore
 emoji: 🗺️
 colorFrom: blue
 colorTo: indigo
-sdk: docker
-app_port: 7860
+sdk: gradio
+app_file: space_app.py
 pinned: false
 ---
 
@@ -70,15 +70,15 @@ cd backend
 ..\.venv\Scripts\python -m uvicorn app.main:app --port 8000
 ```
 
-## Deployment on Hugging Face Spaces (Free Cloud Hosting)
+## Deployment on Hugging Face Spaces (100% Free Cloud Hosting)
 
-ZoneScore is pre-configured for 1-click deployment on **Hugging Face Spaces** using Docker:
+ZoneScore is pre-configured for 1-click deployment on **Hugging Face Spaces** using the **Gradio SDK** (100% Free, no credit card needed):
 
 1. Rendez-vous sur [Hugging Face Spaces](https://huggingface.co/spaces) et cliquez sur **Create new Space**.
-2. Nommez votre Space (ex: `zonescore`), choisissez une licence (ex: `mit`).
-3. Sélectionnez le SDK : **Docker** (Blank).
+2. Nommez votre Space (ex: `ZoneScore`), choisissez une licence (ex: `mit`).
+3. Sélectionnez le SDK : **Gradio** (l'option gratuite avec l'icône orange).
 4. Reliez votre dépôt GitHub (`arhadnane/ZoneScore`) ou poussez ce dépôt sur le remote Hugging Face.
-5. Hugging Face va construire automatiquement l'image Docker (port 7860) et déployer votre plateforme en HTTPS gratuit !
+5. Hugging Face va installer automatiquement `requirements.txt`, exécuter `space_app.py` et déployer votre plateforme en HTTPS gratuit !
 
 Open **http://127.0.0.1:8000** (ou votre URL Hugging Face Spaces) :
 - **Cascading Selectors** : Select Country (Canada, USA) › Province/State › City.
