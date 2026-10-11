@@ -3,9 +3,11 @@ __pycache__/
 *.pyc
 .pytest_cache/
 data/raw/*
-data/processed/*
 !data/raw/.gitkeep
+data/processed/*
 !data/processed/.gitkeep
+!data/processed/*.parquet
+data/processed/*.duckdb
 backend/cache/
 cache/
 .ruff_cache/

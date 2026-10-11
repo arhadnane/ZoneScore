@@ -1,3 +1,13 @@
+---
+title: ZoneScore
+emoji: 🗺️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # ZoneScore — GeoSafe Cross-Border Urban Analytics Platform
 
 ![ZoneScore Platform Preview](docs/images/zonescore_preview.png)
@@ -60,7 +70,17 @@ cd backend
 ..\.venv\Scripts\python -m uvicorn app.main:app --port 8000
 ```
 
-Open **http://127.0.0.1:8000** :
+## Deployment on Hugging Face Spaces (Free Cloud Hosting)
+
+ZoneScore is pre-configured for 1-click deployment on **Hugging Face Spaces** using Docker:
+
+1. Rendez-vous sur [Hugging Face Spaces](https://huggingface.co/spaces) et cliquez sur **Create new Space**.
+2. Nommez votre Space (ex: `zonescore`), choisissez une licence (ex: `mit`).
+3. Sélectionnez le SDK : **Docker** (Blank).
+4. Reliez votre dépôt GitHub (`arhadnane/ZoneScore`) ou poussez ce dépôt sur le remote Hugging Face.
+5. Hugging Face va construire automatiquement l'image Docker (port 7860) et déployer votre plateforme en HTTPS gratuit !
+
+Open **http://127.0.0.1:8000** (ou votre URL Hugging Face Spaces) :
 - **Cascading Selectors** : Select Country (Canada, USA) › Province/State › City.
 - **Metrics** : Sécurité, Quiétude, Familial, Profils K-Means.
 - **Tooltip Hover** : Instant 60fps local inspection of scores and clusters.

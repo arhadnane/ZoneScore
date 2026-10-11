@@ -1,0 +1,16 @@
+.git
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*.duckdb
+backend/cache/
+cache/
