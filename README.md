@@ -4,8 +4,8 @@ Spatial data-science platform scoring **Safety** (perceived-safety proxies), **C
 
 Supported Metros — pick **Pays › Province / État › Ville** in the UI:
 - **Canada**: 
-  - **Québec**: Québec (QC), Montréal (QC)
-  - **Ontario**: Ottawa - Gatineau (ON), Toronto (ON)
+  - **Québec**: Québec (QC), Montréal (QC), Gatineau (QC)
+  - **Ontario**: Ottawa (ON), Toronto (ON)
   - **British Columbia**: Vancouver (BC)
   - **Alberta**: Calgary (AB), Edmonton (AB)
 - **United States**: 
