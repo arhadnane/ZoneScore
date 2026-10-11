@@ -1,9 +1,9 @@
 """Scoring model tests."""
+
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-
 from app.core.constants import FEATURES
 from app.models.scoring import compute_scores, robust_scale
 
@@ -53,3 +53,28 @@ def test_weight_override_changes_scores():
     assert not base["safety_score"].equals(inverted["safety_score"])
     # Calmness untouched by a safety-only override.
     assert base["calmness_score"].equals(inverted["calmness_score"])
+
+
+def test_compute_scores_from_scaled_matches_compute_scores():
+    from app.models.scoring import compute_scores_from_scaled
+
+    df = _base_frame()
+    scaled = robust_scale(df)
+    scores_direct = compute_scores(df)
+    scores_from_scaled = compute_scores_from_scaled(scaled)
+    assert scores_direct.equals(scores_from_scaled)
+
+
+def test_family_score_bounded_and_schools_improve():
+    df = _base_frame()
+    scores = compute_scores(df)
+    assert "family_score" in scores.columns
+    assert scores["family_score"].between(0, 100).all()
+
+    df["school"] = 1
+    df["park_green"] = 1
+    base_fam = compute_scores(df).loc["cell_2", "family_score"]
+    df.loc["cell_2", "school"] = 50
+    df.loc["cell_2", "park_green"] = 50
+    boosted_fam = compute_scores(df).loc["cell_2", "family_score"]
+    assert boosted_fam > base_fam

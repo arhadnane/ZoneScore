@@ -1,4 +1,5 @@
 """H3 grid generation over the Québec City territory."""
+
 from __future__ import annotations
 
 import math
@@ -12,31 +13,46 @@ from app.core.logging import get_logger
 log = get_logger(__name__)
 
 
-def fallback_boundary(settings: Settings | None = None) -> Polygon:
-    """Bounding-box polygon covering the Québec City core (offline fallback)."""
+def fallback_boundary(
+    settings: Settings | None = None, city: str | None = None
+) -> Polygon:
+    """Bounding-box polygon covering the city core (offline fallback)."""
+    if city:
+        from app.core.cities import get_city
+
+        c = get_city(city)
+        return box(c.bbox_west, c.bbox_south, c.bbox_east, c.bbox_north)
     s = settings or get_settings()
     return box(s.bbox_west, s.bbox_south, s.bbox_east, s.bbox_north)
 
 
-def get_city_boundary(settings: Settings | None = None) -> Polygon:
+def get_city_boundary(
+    settings: Settings | None = None, city: str | None = None
+) -> Polygon:
     """Resolve the city boundary via OSM geocoding, falling back to the bbox."""
     s = settings or get_settings()
     if s.offline:
         log.info("Offline mode: using bounding-box boundary.")
-        return fallback_boundary(s)
+        return fallback_boundary(s, city=city)
+    query = s.city_query
+    if city:
+        from app.core.cities import get_city
+
+        c = get_city(city)
+        query = c.city_query
     try:
         import osmnx as ox
 
         ox.settings.use_cache = True
         ox.settings.cache_folder = str(s.raw_dir / "osmnx_cache")
-        gdf = ox.geocode_to_gdf(s.city_query)
+        gdf = ox.geocode_to_gdf(query)
         geom = gdf.geometry.iloc[0]
         poly = geom if isinstance(geom, Polygon) else max(geom.geoms, key=lambda g: g.area)
-        log.info("Resolved city boundary from OSM (area=%.4f deg^2).", poly.area)
+        log.info("Resolved city boundary for '%s' from OSM (area=%.4f deg^2).", query, poly.area)
         return poly
     except Exception as exc:  # network / geocoding failure -> deterministic fallback
-        log.warning("Boundary geocoding failed (%s); using bbox fallback.", exc)
-        return fallback_boundary(s)
+        log.warning("Boundary geocoding failed for '%s' (%s); using bbox fallback.", query, exc)
+        return fallback_boundary(s, city=city)
 
 
 def generate_grid(boundary: Polygon, resolution: int) -> list[str]:

@@ -1,8 +1,10 @@
-# URBISQC — GeoSafe Québec
+# URBIS Canada — GeoSafe Multi-Metropolitan Platform
 
-Spatial data-science platform scoring **Safety** (perceived-safety proxies) and **Calmness**
-(tranquility vs. urban vibrancy) across Québec City on an **Uber H3** hexagonal grid
-(resolutions 8 & 9). Bare-metal stack — no Docker, no standalone database.
+Spatial data-science platform scoring **Safety** (perceived-safety proxies), **Calmness**
+(tranquility vs. urban vibrancy) and **Family-Friendliness** (schools, parks, quiet streets)
+across major Canadian metropolitan areas on an **Uber H3** hexagonal grid (resolutions 8 & 9). Bare-metal stack — no Docker, no standalone database.
+
+Supported Metros: **Québec (QC)**, **Montréal (QC)**, **Ottawa - Gatineau (ON/QC)**, **Toronto (ON)**, **Vancouver (BC)**.
 
 ## Stack
 
@@ -11,8 +13,8 @@ Spatial data-science platform scoring **Safety** (perceived-safety proxies) and 
 | Spatial indexing | H3 v4 (`h3-py`) |
 | Data engine | Python 3.11, pandas, shapely, geopandas, osmnx, DuckDB (embedded), Parquet |
 | ML / analytics | scikit-learn — RobustScaler + K-Means zone profiling |
-| Backend API | FastAPI (async, Pydantic v2, CORS) |
-| Frontend | Single-file MapLibre GL SPA served by FastAPI at `/` |
+| Backend API | FastAPI (async, Pydantic v2, GZip, CORS, Multi-City routing) |
+| Frontend | MapLibre GL SPA (Canadian Metro Switcher, Address Search, Zone Comparator, Basemaps) |
 
 ## Quick start
 
@@ -32,18 +34,20 @@ cd backend
 ..\.venv\Scripts\python -m uvicorn app.main:app --port 8000
 ```
 
-Open **http://127.0.0.1:8000** — choose the metric (Sécurité / Quiétude), switch H3
-resolution, click a hex for details, and open the *Simulation* panel to re-weight the
-scoring model live.
+Open **http://127.0.0.1:8000** :
+- **Canadian Metros** : Seamlessly switch between Québec, Montréal, Ottawa, Toronto, and Vancouver.
+- **Metrics** : Sécurité, Quiétude, Familial, Profils K-Means.
+- **Search** : Canadian address autocompletion with automatic metro detection.
+- **Comparator** : Click *Comparer cette zone* to compare two urban areas side-by-side.
+- **Themes** : Switch between Dark, Light, and Terrain basemaps.
+- **Simulation** : Re-weight model parameters in real-time.
 
 ## Data flow
 
 1. **Boundary** — OSM geocoding of Québec City (bbox fallback when offline).
 2. **Grid** — H3 cells at resolutions 8 and 9 covering the boundary.
-3. **Features** — 10 urban feature categories counted per cell (OSM via `osmnx`; a
-   deterministic synthetic generator with a downtown-distance gradient is used when
-   offline or on network failure).
-4. **Scores** — RobustScaler → weighted blend → percentile rank (0–100).
+3. **Features** — 10 urban feature categories counted per cell (OSM via `osmnx` with polygon cell expansion; deterministic synthetic generator with a downtown-distance gradient used when offline).
+4. **Scores** — RobustScaler → weighted blend → percentile rank (0–100) for Safety, Calmness, and Family indices.
 5. **Profiles** — K-Means (k=5) with human-readable cluster labels.
 6. **Storage** — Parquet per resolution in `data/processed/` + DuckDB views
    (`zones_res8`, `zones_res9`) in `data/processed/urbisqc.duckdb`.
@@ -55,8 +59,9 @@ scoring model live.
 | `GET /api/health` | Service status & loaded zone counts |
 | `GET /api/zones?resolution=8` | GeoJSON FeatureCollection with scores/profiles |
 | `GET /api/zones/{h3}` | Full detail (counts, centroid, cluster) for one cell |
+| `GET /api/locate?lat={lat}&lng={lng}` | Find the H3 cell at coordinates or closest match |
 | `GET /api/stats?resolution=8` | Distribution statistics & profile histogram |
-| `GET /api/weights` | Default model weights |
+| `GET /api/weights` | Default model weights (Safety, Calmness, Family) |
 | `POST /api/simulate` | Re-score with user weight overrides (what-if) |
 
 Interactive docs: `http://127.0.0.1:8000/docs`.

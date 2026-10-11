@@ -1,4 +1,5 @@
 """End-to-end API tests (offline pipeline + FastAPI TestClient)."""
+
 from __future__ import annotations
 
 from app.core.constants import FEATURES
@@ -51,8 +52,10 @@ def test_weights_endpoint(client):
 
 
 def test_simulation_changes_scores(client):
-    baseline = {f["id"]: f["properties"]["safety_score"]
-                for f in client.get("/api/zones", params={"resolution": 8}).json()["features"]}
+    baseline = {
+        f["id"]: f["properties"]["safety_score"]
+        for f in client.get("/api/zones", params={"resolution": 8}).json()["features"]
+    }
     payload = {"resolution": 8, "safety_weights": {"bar_nightlife": 0.5, "streetlight": -0.5}}
     body = client.post("/api/simulate", json=payload).json()
     assert body["applied_safety_weights"]["bar_nightlife"] == 0.5
@@ -70,3 +73,65 @@ def test_index_served(client):
     response = client.get("/")
     assert response.status_code == 200
     assert "URBISQC" in response.text
+
+
+def test_gzip_compression(client):
+    response = client.get(
+        "/api/zones", params={"resolution": 8}, headers={"Accept-Encoding": "gzip"}
+    )
+    assert response.status_code == 200
+    assert response.headers.get("content-encoding") == "gzip"
+
+
+def test_scaled_frame_cached():
+    from app.api.store import get_store
+
+    store = get_store()
+    scaled = store.scaled_frame(8)
+    assert not scaled.empty
+    assert set(scaled.columns) == set(FEATURES)
+
+
+def test_locate_endpoint(client):
+    res = client.get("/api/locate", params={"lat": 46.8131, "lng": -71.2075, "resolution": 8})
+    assert res.status_code == 200
+    data = res.json()
+    assert data["found"] is True
+    assert "h3" in data
+    assert "detail" in data
+    assert "safety_score" in data["detail"]
+    assert "family_score" in data["detail"]
+
+
+def test_family_score_in_geojson_and_weights(client):
+    geo = client.get("/api/zones", params={"resolution": 8}).json()
+    assert "family_score" in geo["features"][0]["properties"]
+    assert 0 <= geo["features"][0]["properties"]["family_score"] <= 100
+
+    w = client.get("/api/weights").json()
+    assert "family_weights" in w
+    assert "school" in w["family_weights"]
+
+
+def test_cities_endpoint(client):
+    cities = client.get("/api/cities").json()
+    assert isinstance(cities, list)
+    assert len(cities) >= 4
+    city_ids = [c["id"] for c in cities]
+    assert "quebec" in city_ids
+    assert "montreal" in city_ids
+    assert "toronto" in city_ids
+    assert "ottawa" in city_ids
+
+
+def test_multi_city_zones_and_locate(client):
+    # Test Montreal zones
+    mtl = client.get("/api/zones", params={"city": "montreal", "resolution": 8}).json()
+    assert mtl["type"] == "FeatureCollection"
+    assert len(mtl["features"]) > 50
+
+    # Test auto-city location detection for Montreal downtown
+    loc_params = {"lat": 45.5017, "lng": -73.5673, "resolution": 8}
+    loc = client.get("/api/locate", params=loc_params).json()
+    assert loc["found"] is True
+    assert loc["city"] == "montreal"

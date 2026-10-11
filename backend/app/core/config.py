@@ -1,4 +1,5 @@
 """Application configuration (environment-driven, prefix ``URBIS_``)."""
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -48,8 +49,18 @@ class Settings(BaseSettings):
     def duckdb_path(self) -> Path:
         return self.processed_dir / "urbisqc.duckdb"
 
+    def city_parquet(self, city: str, resolution: int) -> Path:
+        """Parquet file path for a specific Canadian city and resolution."""
+        city_file = self.processed_dir / f"zones_{city.lower()}_res{resolution}.parquet"
+        if city.lower() == "quebec" and not city_file.exists():
+            legacy_file = self.processed_dir / f"zones_res{resolution}.parquet"
+            if legacy_file.exists():
+                return legacy_file
+        return city_file
+
     def zones_parquet(self, resolution: int) -> Path:
-        return self.processed_dir / f"zones_res{resolution}.parquet"
+        """Legacy access for Québec City zones."""
+        return self.city_parquet("quebec", resolution)
 
 
 @lru_cache

@@ -1,4 +1,5 @@
 """Test configuration: fully offline, isolated temp data directory, res 8 only."""
+
 from __future__ import annotations
 
 import os
@@ -10,9 +11,8 @@ os.environ["URBIS_DATA_DIR"] = tempfile.mkdtemp(prefix="urbis_test_")
 os.environ["URBIS_RESOLUTIONS"] = "[8]"
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.core.config import get_settings
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture(scope="session")
@@ -24,7 +24,7 @@ def settings():
 def pipeline_result(settings):
     from app.etl.pipeline import run_pipeline
 
-    return run_pipeline(settings)
+    return run_pipeline(settings, city_ids=["quebec", "montreal"])
 
 
 @pytest.fixture(scope="session")

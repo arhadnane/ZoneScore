@@ -3,6 +3,7 @@
 Pipeline: robust scaling (median/IQR) of per-cell feature counts ->
 weighted linear blend -> percentile rank mapped to [0, 100].
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -38,6 +39,20 @@ CALMNESS_WEIGHTS: dict[str, float] = {
     "police_fire": 0.05,
 }
 
+# Family-friendly proxy: schools, parks, quiet streets vs nightlife and industrial hazards
+FAMILY_WEIGHTS: dict[str, float] = {
+    "school": 0.30,
+    "park_green": 0.30,
+    "transit_stop": 0.15,
+    "streetlight": 0.10,
+    "police_fire": 0.05,
+    "shop_retail": 0.05,
+    "restaurant_cafe": 0.00,
+    "major_road": -0.25,
+    "industrial": -0.30,
+    "bar_nightlife": -0.35,
+}
+
 
 def robust_scale(counts: pd.DataFrame) -> pd.DataFrame:
     """Robust-scale feature counts, clipped to [-3, 3] to bound outlier leverage."""
@@ -65,19 +80,32 @@ def to_score(blend: pd.Series) -> pd.Series:
     return (blend.rank(pct=True, method="average") * 100.0).round(1)
 
 
-def compute_scores(
-    counts: pd.DataFrame,
+def compute_scores_from_scaled(
+    scaled: pd.DataFrame,
     safety_weights: dict[str, float] | None = None,
     calmness_weights: dict[str, float] | None = None,
+    family_weights: dict[str, float] | None = None,
 ) -> pd.DataFrame:
-    """Return a DataFrame with ``safety_score`` and ``calmness_score`` columns."""
-    scaled = robust_scale(counts)
+    """Compute scores directly from an already robust-scaled DataFrame."""
     sw = {**SAFETY_WEIGHTS, **(safety_weights or {})}
     cw = {**CALMNESS_WEIGHTS, **(calmness_weights or {})}
+    fw = {**FAMILY_WEIGHTS, **(family_weights or {})}
     return pd.DataFrame(
         {
             "safety_score": to_score(weighted_blend(scaled, sw)),
             "calmness_score": to_score(weighted_blend(scaled, cw)),
+            "family_score": to_score(weighted_blend(scaled, fw)),
         },
-        index=counts.index,
+        index=scaled.index,
     )
+
+
+def compute_scores(
+    counts: pd.DataFrame,
+    safety_weights: dict[str, float] | None = None,
+    calmness_weights: dict[str, float] | None = None,
+    family_weights: dict[str, float] | None = None,
+) -> pd.DataFrame:
+    """Return a DataFrame with safety, calmness, and family score columns."""
+    scaled = robust_scale(counts)
+    return compute_scores_from_scaled(scaled, safety_weights, calmness_weights, family_weights)

@@ -1,4 +1,5 @@
 """Domain constants: urban feature taxonomy and OSM tag mapping."""
+
 from __future__ import annotations
 
 # Canonical urban feature categories counted per H3 cell.

@@ -1,9 +1,9 @@
 """Clustering model tests."""
+
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-
 from app.core.constants import FEATURES
 from app.models.clustering import N_CLUSTERS, cluster_zones
 

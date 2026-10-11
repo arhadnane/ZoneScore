@@ -1,7 +1,17 @@
 """Pydantic v2 API schemas."""
+
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
+
+
+class CityInfo(BaseModel):
+    id: str
+    name: str
+    province: str
+    center: tuple[float, float]
+    default_zoom: float
+    bounds: tuple[float, float, float, float]
 
 
 class HealthResponse(BaseModel):
@@ -10,12 +20,14 @@ class HealthResponse(BaseModel):
     version: str
     resolutions: list[int]
     zones_loaded: dict[int, int]
+    cities: list[str] = Field(default_factory=lambda: ["quebec"])
 
 
 class ZoneScore(BaseModel):
     h3: str
     safety_score: float = Field(ge=0, le=100)
     calmness_score: float = Field(ge=0, le=100)
+    family_score: float = Field(default=50.0, ge=0, le=100)
 
 
 class ZoneDetail(ZoneScore):
@@ -24,6 +36,7 @@ class ZoneDetail(ZoneScore):
     profile: str
     counts: dict[str, int]
     centroid: tuple[float, float]  # (lat, lng)
+    city: str = "quebec"
 
 
 class StatsResponse(BaseModel):
@@ -35,17 +48,25 @@ class StatsResponse(BaseModel):
     calmness_mean: float
     calmness_p10: float
     calmness_p90: float
+    family_mean: float = 50.0
+    family_p10: float = 50.0
+    family_p90: float = 50.0
     profiles: dict[str, int]
+    city: str = "quebec"
 
 
 class SimulationRequest(BaseModel):
     resolution: int = Field(default=8, description="H3 resolution (8 or 9)")
+    city: str = Field(default="quebec", description="Target Canadian city")
     safety_weights: dict[str, float] = Field(default_factory=dict)
     calmness_weights: dict[str, float] = Field(default_factory=dict)
+    family_weights: dict[str, float] = Field(default_factory=dict)
 
 
 class SimulationResponse(BaseModel):
     resolution: int
+    city: str = "quebec"
     applied_safety_weights: dict[str, float]
     applied_calmness_weights: dict[str, float]
+    applied_family_weights: dict[str, float] = Field(default_factory=dict)
     zones: list[ZoneScore]

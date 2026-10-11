@@ -4,110 +4,616 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>URBISQC — GeoSafe Québec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <style>
   :root {
-    --bg: #101418; --panel: #1a2129; --text: #e8edf2; --muted: #93a1af;
-    --accent: #4fc3f7; --border: #2b3644;
+    --bg: #090d12;
+    --panel-bg: rgba(15, 23, 34, 0.88);
+    --panel-border: rgba(255, 255, 255, 0.08);
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent-glow: rgba(56, 189, 248, 0.25);
+    --border: #1e293b;
+    --card-bg: rgba(30, 41, 59, 0.6);
   }
-  * { box-sizing: border-box; margin: 0; }
-  html, body { height: 100%; font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
   #map { position: absolute; inset: 0; }
+
+  /* Panels */
   .panel {
-    position: absolute; z-index: 10; background: rgba(26,33,41,.94); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px 16px; backdrop-filter: blur(6px);
+    position: absolute;
+    z-index: 10;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04);
   }
-  #controls { top: 14px; left: 14px; width: 300px; max-height: calc(100% - 28px); overflow-y: auto; }
-  #detail { top: 14px; right: 14px; width: 300px; display: none; }
-  h1 { font-size: 16px; letter-spacing: .4px; margin-bottom: 2px; }
-  .sub { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
-  .row { display: flex; gap: 8px; margin-bottom: 10px; }
-  .seg { flex: 1; display: flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+  #controls {
+    top: 16px;
+    left: 16px;
+    width: 320px;
+    max-height: calc(100% - 32px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  #controls::-webkit-scrollbar { width: 4px; }
+  #controls::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* Search Bar at Top */
+  #searchContainer {
+    position: absolute;
+    top: 16px;
+    left: 352px;
+    width: 360px;
+    max-width: calc(100vw - 370px);
+    z-index: 12;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    padding: 8px 12px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(16px);
+    transition: all .2s;
+  }
+  .search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow), 0 12px 28px rgba(0, 0, 0, 0.5);
+  }
+  .search-box svg { fill: var(--muted); width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0; }
+  .search-box input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 12px;
+    font-family: inherit;
+  }
+  .search-box input::placeholder { color: var(--muted); }
+  .search-clear {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    display: none;
+  }
+  .search-results {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    max-height: 240px;
+    overflow-y: auto;
+    display: none;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+  }
+  .search-item {
+    padding: 8px 12px;
+    font-size: 11px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    line-height: 1.3;
+    transition: background .12s;
+  }
+  .search-item:hover { background: rgba(56, 189, 248, 0.12); color: #fff; }
+  .search-item:last-child { border-bottom: none; }
+
+  /* Basemap Switcher Top Right */
+  #basemapSwitcher {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 10;
+    display: flex;
+    gap: 4px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 4px;
+    backdrop-filter: blur(16px);
+  }
+  .bm-btn {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 5px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .bm-btn.active {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+  }
+
+  /* Compare Mode Banner */
+  #compareBanner {
+    position: absolute;
+    top: 68px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    background: rgba(14, 165, 233, 0.95);
+    color: #03131e;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 8px 16px;
+    border-radius: 30px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    display: none;
+    align-items: center;
+    gap: 12px;
+  }
+  #compareBanner button {
+    background: rgba(3, 19, 30, 0.2);
+    border: none;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    cursor: pointer;
+    color: #03131e;
+    font-weight: 700;
+  }
+
+  /* Detail Panel */
+  #detail {
+    top: 56px;
+    right: 16px;
+    width: 310px;
+    display: none;
+    max-height: calc(100% - 72px);
+    overflow-y: auto;
+    animation: fadeIn .2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Compare Modal Panel */
+  #comparePanel {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 620px;
+    max-width: calc(100vw - 32px);
+    max-height: 480px;
+    overflow-y: auto;
+    z-index: 20;
+    display: none;
+    background: var(--panel-bg);
+    border: 1px solid var(--accent);
+    box-shadow: 0 24px 48px -12px rgba(0,0,0,0.8), 0 0 20px var(--accent-glow);
+    border-radius: 16px;
+    padding: 16px 20px;
+    backdrop-filter: blur(20px);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Header */
+  .brand { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+  .badge-tag {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--accent);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    text-transform: uppercase;
+  }
+  h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; color: #fff; }
+  .sub { font-size: 11px; color: var(--muted); margin-bottom: 14px; line-height: 1.4; }
+
+  /* Segmented Controls */
+  .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; }
+  .row { display: flex; gap: 6px; margin-bottom: 12px; }
+  .seg {
+    flex: 1;
+    display: flex;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2px;
+    overflow: hidden;
+  }
   .seg button {
-    flex: 1; padding: 7px 4px; border: 0; background: transparent; color: var(--muted);
-    font-size: 12px; cursor: pointer; transition: background .15s;
+    flex: 1;
+    padding: 6px 3px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .18s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .seg button.active { background: var(--accent); color: #06232f; font-weight: 600; }
-  label.slider-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin: 8px 0 2px; }
-  input[type=range] { width: 100%; accent-color: var(--accent); }
-  #stats { font-size: 12px; color: var(--muted); line-height: 1.7; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
-  #stats b { color: var(--text); }
-  .legend { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 10px; color: var(--muted); }
-  .legend .bar { flex: 1; height: 10px; border-radius: 5px; background: linear-gradient(90deg, #d73027, #fee08b, #1a9850); }
-  #detail h2 { font-size: 13px; margin-bottom: 6px; color: var(--accent); word-break: break-all; }
-  #detail table { width: 100%; font-size: 11px; border-collapse: collapse; }
-  #detail td { padding: 2px 0; color: var(--muted); }
-  #detail td:last-child { text-align: right; color: var(--text); }
-  .score-line { display: flex; justify-content: space-between; font-size: 13px; margin: 3px 0; }
+  .seg button:hover:not(.active) { color: var(--text); background: rgba(255, 255, 255, 0.04); }
+  .seg button.active {
+    background: var(--accent);
+    color: #03131e;
+    font-weight: 700;
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
+
+  /* Legend */
+  .legend-box { margin: 12px 0; padding: 10px 12px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); }
+  .legend-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; }
+  .score-legend { display: flex; flex-direction: column; gap: 4px; }
+  .legend-bar-wrap { position: relative; width: 100%; }
+  .legend-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #d73027 0%, #fc8d59 25%, #fee08b 50%, #91cf60 75%, #1a9850 100%);
+  }
+  .legend-ticks { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); font-weight: 600; margin-top: 4px; }
+
+  /* Profiles Legend */
+  .profile-legend { display: none; flex-direction: column; gap: 6px; margin-top: 4px; }
+  .profile-legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 11px; }
+  .profile-badge { display: flex; align-items: center; gap: 6px; }
+  .profile-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .profile-count { font-size: 10px; color: var(--muted); font-weight: 600; }
+
+  /* Stats Section */
+  #stats {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 10px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 6px; }
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 8px;
+  }
+  .stat-card-title { font-size: 9px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+  .stat-card-value { font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px; }
+  .stat-card-sub { font-size: 8px; color: var(--muted); margin-top: 1px; }
+
+  .stat-bar-container { height: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; margin-top: 3px; overflow: hidden; }
+  .stat-bar-fill { height: 100%; border-radius: 2px; }
+
+  /* Simulation */
+  details {
+    margin-top: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card-bg);
+    overflow: hidden;
+  }
+  summary {
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text);
+    padding: 9px 12px;
+    user-select: none;
+    transition: background .15s;
+    list-style-type: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "›"; font-size: 14px; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(90deg); }
+  summary:hover { background: rgba(255, 255, 255, 0.03); }
+  .sim-content { padding: 10px 12px; border-top: 1px solid var(--border); }
+  label.slider-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin: 6px 0 2px; }
+  label.slider-label b { color: var(--text); font-weight: 600; }
+  input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
   .btn {
-    width: 100%; margin-top: 10px; padding: 8px; border: 1px solid var(--border); border-radius: 7px;
-    background: transparent; color: var(--accent); font-size: 12px; cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    padding: 7px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
   }
-  .btn:hover { background: rgba(79,195,247,.12); }
-  #simState { font-size: 10px; color: var(--muted); margin-top: 6px; text-align: center; }
-  details { margin-top: 10px; }
-  summary { font-size: 12px; cursor: pointer; color: var(--text); }
+  .btn:hover { background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.4); }
+  .btn.btn-reset { color: var(--muted); }
+  .btn.btn-reset:hover { background: rgba(255, 255, 255, 0.05); color: #fff; border-color: var(--muted); }
+  .btn.btn-compare { background: rgba(56, 189, 248, 0.15); border-color: var(--accent); color: #fff; margin-top: 12px; }
+  .btn.btn-compare:hover { background: var(--accent); color: #03131e; }
+  #simState { font-size: 10px; color: var(--accent); margin-top: 6px; text-align: center; }
+
+  /* Detail Panel */
+  .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  #detail h2 { font-size: 12px; color: var(--accent); word-break: break-all; font-family: monospace; font-weight: 600; }
+  .close-btn {
+    background: transparent;
+    border: 0;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .close-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+  .profile-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .score-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; margin-bottom: 6px; }
+  .score-line { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+  .score-bar-bg { height: 4px; background: rgba(255, 255, 255, 0.08); border-radius: 2px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 2px; }
+
+  #detail table { width: 100%; font-size: 11px; border-collapse: collapse; margin-top: 10px; }
+  #detail td { padding: 3px 0; color: var(--muted); border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+  #detail td:last-child { text-align: right; color: var(--text); font-weight: 600; }
+
+  /* Comparison Table */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+  .compare-col { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .compare-header { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; font-family: monospace; }
+  .delta-pill { font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; }
+  .delta-pos { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+  .delta-neg { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+  /* MapLibre Hover Popup */
+  .maplibregl-popup-content {
+    background: rgba(15, 23, 34, 0.94) !important;
+    border: 1px solid var(--panel-border) !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    color: var(--text) !important;
+    font-family: inherit !important;
+    font-size: 11px !important;
+    backdrop-filter: blur(8px) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  }
+  .maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: rgba(15, 23, 34, 0.94) !important; }
+  .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: rgba(15, 23, 34, 0.94) !important; }
+  .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: rgba(15, 23, 34, 0.94) !important; }
+  .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: rgba(15, 23, 34, 0.94) !important; }
 </style>
 </head>
 <body>
 <div id="map"></div>
 
-<div id="controls" class="panel">
-  <h1>URBISQC · GeoSafe Québec</h1>
-  <div class="sub">Sécurité &amp; quiétude urbaine — grille H3, Ville de Québec</div>
+<!-- Top Search Bar -->
+<div id="searchContainer">
+  <div class="search-box">
+    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    <input type="text" id="searchInput" placeholder="Rechercher une adresse au Canada (Québec, Montréal, Toronto...)" autocomplete="off" />
+    <button class="search-clear" id="searchClear">✕</button>
+  </div>
+  <div class="search-results" id="searchResults"></div>
+</div>
 
+<!-- Basemap Switcher -->
+<div id="basemapSwitcher">
+  <button class="bm-btn active" data-style="dark">Sombre</button>
+  <button class="bm-btn" data-style="light">Clair</button>
+  <button class="bm-btn" data-style="voyager">Terrain</button>
+</div>
+
+<!-- Compare Mode Active Banner -->
+<div id="compareBanner">
+  <span>⚖️ Mode comparaison : sélectionnez une 2e zone sur la carte</span>
+  <button id="cancelCompare">Annuler</button>
+</div>
+
+<!-- Left Controls Panel -->
+<div id="controls" class="panel">
+  <div class="brand">
+    <h1>URBIS Canada</h1>
+    <span class="badge-tag" id="cityBadge">Québec (QC)</span>
+  </div>
+  <div class="sub">Plateforme d'analyse et scoring spatial multi-métropoles sur grille H3.</div>
+
+  <div class="section-label">🍁 Métropole Canadienne</div>
+  <div class="row" style="margin-bottom: 10px;">
+    <select id="citySelect" style="width: 100%; padding: 7px 10px; background: var(--card-bg); color: #fff; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; outline: none; transition: border-color .15s;">
+      <option value="quebec">Québec (QC)</option>
+      <option value="montreal">Montréal (QC)</option>
+      <option value="ottawa">Ottawa - Gatineau (ON/QC)</option>
+      <option value="toronto">Toronto (ON)</option>
+      <option value="vancouver">Vancouver (BC)</option>
+    </select>
+  </div>
+
+  <div class="section-label">Métrique affichée</div>
   <div class="row">
     <div class="seg" id="metricSeg">
       <button data-metric="safety_score" class="active">Sécurité</button>
       <button data-metric="calmness_score">Quiétude</button>
+      <button data-metric="family_score">Familial</button>
+      <button data-metric="profile">Profils</button>
     </div>
   </div>
+
+  <div class="section-label">Résolution spatiale H3</div>
   <div class="row">
     <div class="seg" id="resSeg">
-      <button data-res="8" class="active">H3 rés. 8</button>
-      <button data-res="9">H3 rés. 9</button>
+      <button data-res="8" class="active">Rés. 8 (~450m)</button>
+      <button data-res="9">Rés. 9 (~170m)</button>
     </div>
   </div>
 
-  <div class="legend"><span>0</span><div class="bar"></div><span>100</span></div>
+  <div class="legend-box">
+    <div class="legend-title" id="legendTitle">Échelle de score (percentile)</div>
+    <div class="score-legend" id="scoreLegend">
+      <div class="legend-bar-wrap">
+        <div class="legend-bar" id="legendBar"></div>
+      </div>
+      <div class="legend-ticks">
+        <span>0 (Faible)</span>
+        <span>50 (Médiane)</span>
+        <span>100 (Élevé)</span>
+      </div>
+    </div>
+    <div class="profile-legend" id="profileLegend"></div>
+  </div>
 
   <details>
-    <summary>Simulation « et si… » (poids du modèle)</summary>
-    <div id="sliders"></div>
-    <button class="btn" id="applySim">Appliquer la simulation</button>
-    <button class="btn" id="resetSim">Réinitialiser</button>
-    <div id="simState"></div>
+    <summary>Simulation « et si… » (Poids du modèle)</summary>
+    <div class="sim-content">
+      <div id="sliders"></div>
+      <button class="btn" id="applySim">Appliquer la simulation</button>
+      <button class="btn btn-reset" id="resetSim">Réinitialiser</button>
+      <div id="simState"></div>
+    </div>
   </details>
 
-  <div id="stats">Chargement…</div>
+  <div id="stats">Chargement des données statistiques…</div>
 </div>
 
+<!-- Right Detail Panel -->
 <div id="detail" class="panel">
-  <h2 id="detailTitle"></h2>
-  <div class="score-line"><span>Sécurité</span><b id="dSafety"></b></div>
-  <div class="score-line"><span>Quiétude</span><b id="dCalm"></b></div>
-  <div class="score-line"><span>Profil</span><b id="dProfile" style="font-size:11px"></b></div>
+  <div class="detail-header">
+    <h2 id="detailTitle"></h2>
+    <button class="close-btn" id="closeDetail" aria-label="Fermer">✕</button>
+  </div>
+  <div id="dProfileTag" class="profile-tag"></div>
+  <div id="dProfile" style="display:none"></div>
+
+  <div class="score-card">
+    <div class="score-line"><span>Indice Sécurité</span><b id="dSafety"></b></div>
+    <div class="score-bar-bg"><div id="dSafetyBar" class="score-bar-fill"></div></div>
+  </div>
+
+  <div class="score-card">
+    <div class="score-line"><span>Indice Quiétude</span><b id="dCalm"></b></div>
+    <div class="score-bar-bg"><div id="dCalmBar" class="score-bar-fill"></div></div>
+  </div>
+
+  <div class="score-card">
+    <div class="score-line"><span>Indice Familial</span><b id="dFamily"></b></div>
+    <div class="score-bar-bg"><div id="dFamilyBar" class="score-bar-fill"></div></div>
+  </div>
+
+  <button class="btn btn-compare" id="startCompareBtn">⚖️ Comparer avec une autre zone</button>
+
   <table id="dCounts"></table>
+</div>
+
+<!-- Modal Comparator Panel -->
+<div id="comparePanel">
+  <div class="detail-header">
+    <h3 style="font-size:14px; font-weight:700; color:#fff;">Comparateur de Zones Urbaines</h3>
+    <button class="close-btn" id="closeCompare">✕</button>
+  </div>
+  <div class="compare-grid" id="compareGrid"></div>
 </div>
 
 <script>
 "use strict";
 const API = "";
-const state = { metric: "safety_score", resolution: 8, weights: null, simScores: null };
+const CANADIAN_CITIES = {
+  quebec: { name: "Québec", province: "QC", center: [-71.2429, 46.8288], zoom: 11.2 },
+  montreal: { name: "Montréal", province: "QC", center: [-73.5673, 45.5017], zoom: 12.0 },
+  ottawa: { name: "Ottawa - Gatineau", province: "ON/QC", center: [-75.6972, 45.4215], zoom: 12.2 },
+  toronto: { name: "Toronto", province: "ON", center: [-79.3832, 43.6532], zoom: 12.2 },
+  vancouver: { name: "Vancouver", province: "BC", center: [-123.1207, 49.2827], zoom: 12.2 }
+};
+
+const state = {
+  city: "quebec",
+  metric: "safety_score",
+  resolution: 8,
+  weights: null,
+  simScores: null,
+  selectedCell: null,
+  comparing: false,
+  zoneA: null,
+  zoneB: null,
+  currentBasemap: "dark"
+};
+
+const BASEMAP_STYLES = {
+  dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+  light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+  voyager: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+};
+
+const PROFILE_COLORS = {
+  "Vibrant nightlife district": "#ec4899",
+  "Green haven": "#10b981",
+  "Commercial & services hub": "#06b6d4",
+  "Industrial / logistics corridor": "#f59e0b",
+  "High-traffic artery zone": "#ef4444",
+  "Tranquil residential": "#6366f1",
+};
 
 const map = new maplibregl.Map({
   container: "map",
-  style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+  style: BASEMAP_STYLES.dark,
   center: [-71.2429, 46.8288],
-  zoom: 10.6,
+  zoom: 11.2,
 });
 map.addControl(new maplibregl.NavigationControl(), "bottom-right");
 
-const colorRamp = (metric) => [
-  "interpolate", ["linear"], ["get", metric],
-  0, "#d73027", 25, "#fc8d59", 50, "#fee08b", 75, "#91cf60", 100, "#1a9850",
-];
+let searchMarker = null;
+
+const hoverPopup = new maplibregl.Popup({
+  closeButton: false,
+  closeOnClick: false,
+  offset: 12,
+});
+
+function getPaintColor() {
+  if (state.metric === "profile") {
+    const match = ["match", ["get", "profile"]];
+    for (const [prof, color] of Object.entries(PROFILE_COLORS)) {
+      match.push(prof, color);
+    }
+    match.push("#6366f1");
+    return match;
+  }
+  return [
+    "interpolate", ["linear"], ["get", state.metric],
+    0, "#d73027", 25, "#fc8d59", 50, "#fee08b", 75, "#91cf60", 100, "#1a9850",
+  ];
+}
 
 async function fetchJSON(url, options) {
   const res = await fetch(url, options);
@@ -121,7 +627,15 @@ function mergeSimulation(geojson) {
   const features = geojson.features.map((f) => {
     const sim = byCell[f.properties.h3];
     return sim
-      ? { ...f, properties: { ...f.properties, safety_score: sim.s, calmness_score: sim.c } }
+      ? {
+          ...f,
+          properties: {
+            ...f.properties,
+            safety_score: sim.s,
+            calmness_score: sim.c,
+            family_score: sim.f !== undefined ? sim.f : f.properties.family_score
+          }
+        }
       : f;
   });
   return { ...geojson, features };
@@ -129,8 +643,33 @@ function mergeSimulation(geojson) {
 
 let baseGeojson = null;
 async function loadZones() {
-  baseGeojson = await fetchJSON(`${API}/api/zones?resolution=${state.resolution}`);
+  baseGeojson = await fetchJSON(`${API}/api/zones?city=${state.city}&resolution=${state.resolution}`);
   renderZones();
+}
+
+async function switchCity(cityId, fly = true) {
+  if (!CANADIAN_CITIES[cityId]) return;
+  state.city = cityId;
+  const selectEl = document.getElementById("citySelect");
+  if (selectEl) selectEl.value = cityId;
+  const cfg = CANADIAN_CITIES[cityId];
+  const badgeEl = document.getElementById("cityBadge");
+  if (badgeEl) badgeEl.textContent = `${cfg.name} (${cfg.province})`;
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) searchInput.placeholder = `Rechercher une adresse à ${cfg.name} ou au Canada...`;
+
+  if (fly) {
+    map.flyTo({ center: cfg.center, zoom: cfg.zoom, essential: true });
+  }
+
+  hideDetail();
+  if (state.comparing) cancelCompareMode();
+  state.simScores = null;
+  const simState = document.getElementById("simState");
+  if (simState) simState.textContent = "";
+
+  await Promise.all([loadZones(), loadStats()]);
+  syncURL();
 }
 
 function renderZones() {
@@ -138,43 +677,358 @@ function renderZones() {
   const src = map.getSource("zones");
   if (src) {
     src.setData(data);
-    map.setPaintProperty("zones-fill", "fill-color", colorRamp(state.metric));
+    map.setPaintProperty("zones-fill", "fill-color", getPaintColor());
   } else {
     map.addSource("zones", { type: "geojson", data });
     map.addLayer({
-      id: "zones-fill", type: "fill", source: "zones",
-      paint: { "fill-color": colorRamp(state.metric), "fill-opacity": 0.55 },
+      id: "zones-fill",
+      type: "fill",
+      source: "zones",
+      paint: { "fill-color": getPaintColor(), "fill-opacity": 0.62 },
     });
     map.addLayer({
-      id: "zones-line", type: "line", source: "zones",
-      paint: { "line-color": "#0e141a", "line-width": 0.6, "line-opacity": 0.7 },
+      id: "zones-line",
+      type: "line",
+      source: "zones",
+      paint: { "line-color": "#090d12", "line-width": 0.7, "line-opacity": 0.8 },
     });
-    map.on("click", "zones-fill", (e) => showDetail(e.features[0].properties.h3));
-    map.on("mouseenter", "zones-fill", () => (map.getCanvas().style.cursor = "pointer"));
-    map.on("mouseleave", "zones-fill", () => (map.getCanvas().style.cursor = ""));
+
+    map.on("click", "zones-fill", onZoneClick);
+    map.on("mousemove", "zones-fill", onZoneHover);
+    map.on("mouseleave", "zones-fill", onZoneLeave);
+  }
+  updateLegendUI();
+}
+
+function onZoneClick(e) {
+  const cell = e.features[0].properties.h3;
+  if (state.comparing) {
+    completeComparison(cell);
+  } else {
+    showDetail(cell);
   }
 }
 
+function onZoneHover(e) {
+  map.getCanvas().style.cursor = "pointer";
+  if (!e.features || !e.features.length) return;
+  const props = e.features[0].properties;
+  const color = PROFILE_COLORS[props.profile] || "#6366f1";
+  const fam = props.family_score !== undefined ? Number(props.family_score).toFixed(1) : "-";
+  const content = `
+    <div style="font-weight:700; margin-bottom:3px; display:flex; align-items:center; gap:5px;">
+      <span style="width:7px; height:7px; border-radius:50%; background:${color}; display:inline-block;"></span>
+      ${props.profile}
+    </div>
+    <div style="color:var(--muted); font-size:10px; font-family:monospace;">${props.h3}</div>
+    <div style="margin-top:4px; display:flex; flex-direction:column; gap:2px; font-size:10px;">
+      <div style="display:flex; justify-content:space-between; gap:12px;"><span>Sécurité:</span><b>${Number(props.safety_score).toFixed(1)}</b></div>
+      <div style="display:flex; justify-content:space-between; gap:12px;"><span>Quiétude:</span><b>${Number(props.calmness_score).toFixed(1)}</b></div>
+      <div style="display:flex; justify-content:space-between; gap:12px;"><span>Familial:</span><b>${fam}</b></div>
+    </div>
+  `;
+  hoverPopup.setLngLat(e.lngLat).setHTML(content).addTo(map);
+}
+
+function onZoneLeave() {
+  map.getCanvas().style.cursor = "";
+  hoverPopup.remove();
+}
+
+function updateLegendUI() {
+  const isProfile = state.metric === "profile";
+  document.getElementById("scoreLegend").style.display = isProfile ? "none" : "flex";
+  document.getElementById("profileLegend").style.display = isProfile ? "flex" : "none";
+  let title = "Indice de Sécurité";
+  if (state.metric === "calmness_score") title = "Indice de Quiétude";
+  else if (state.metric === "family_score") title = "Indice Familial";
+  else if (isProfile) title = "Profils Urbains (K-Means)";
+  document.getElementById("legendTitle").textContent = title;
+}
+
+let lastStats = null;
 async function loadStats() {
-  const s = await fetchJSON(`${API}/api/stats?resolution=${state.resolution}`);
-  const profiles = Object.entries(s.profiles)
-    .map(([name, n]) => `${name}&nbsp;(${n})`).join(" · ");
-  document.getElementById("stats").innerHTML =
-    `<b>${s.zone_count}</b> zones · rés. ${s.resolution}<br>` +
-    `Sécurité — moy. <b>${s.safety_mean}</b> (P10 ${s.safety_p10} / P90 ${s.safety_p90})<br>` +
-    `Quiétude — moy. <b>${s.calmness_mean}</b> (P10 ${s.calmness_p10} / P90 ${s.calmness_p90})<br>` +
-    `<span style="font-size:10px">${profiles}</span>`;
+  lastStats = await fetchJSON(`${API}/api/stats?city=${state.city}&resolution=${state.resolution}`);
+  const s = lastStats;
+
+  const profBox = document.getElementById("profileLegend");
+  profBox.innerHTML = Object.entries(s.profiles).map(([name, n]) => {
+    const col = PROFILE_COLORS[name] || "#6366f1";
+    return `
+      <div class="profile-legend-item">
+        <div class="profile-badge">
+          <span class="profile-dot" style="background:${col}"></span>
+          <span>${name}</span>
+        </div>
+        <span class="profile-count">${n}</span>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("stats").innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+      <span style="font-weight:600; color:#fff;">${s.zone_count} cellules H3</span>
+      <span style="font-size:10px; color:var(--muted);">Résolution ${s.resolution}</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-title">Sécurité</div>
+        <div class="stat-card-value">${s.safety_mean}</div>
+        <div class="stat-bar-container"><div class="stat-bar-fill" style="width:${s.safety_mean}%; background:#38bdf8;"></div></div>
+        <div class="stat-card-sub">P10: ${s.safety_p10} · P90: ${s.safety_p90}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">Quiétude</div>
+        <div class="stat-card-value">${s.calmness_mean}</div>
+        <div class="stat-bar-container"><div class="stat-bar-fill" style="width:${s.calmness_mean}%; background:#10b981;"></div></div>
+        <div class="stat-card-sub">P10: ${s.calmness_p10} · P90: ${s.calmness_p90}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">Familial</div>
+        <div class="stat-card-value">${s.family_mean ?? s.safety_mean}</div>
+        <div class="stat-bar-container"><div class="stat-bar-fill" style="width:${s.family_mean ?? s.safety_mean}%; background:#f59e0b;"></div></div>
+        <div class="stat-card-sub">P10: ${s.family_p10 ?? s.safety_p10} · P90: ${s.family_p90 ?? s.safety_p90}</div>
+      </div>
+    </div>
+  `;
 }
 
 async function showDetail(cell) {
+  state.selectedCell = cell;
+  syncURL();
   const d = await fetchJSON(`${API}/api/zones/${cell}`);
+  state.zoneA = d;
+
   document.getElementById("detailTitle").textContent = d.h3;
-  document.getElementById("dSafety").textContent = d.safety_score.toFixed(1);
-  document.getElementById("dCalm").textContent = d.calmness_score.toFixed(1);
+
+  const color = PROFILE_COLORS[d.profile] || "#6366f1";
+  const tag = document.getElementById("dProfileTag");
+  tag.textContent = d.profile;
+  tag.style.background = `${color}20`;
+  tag.style.color = color;
+  tag.style.border = `1px solid ${color}50`;
   document.getElementById("dProfile").textContent = d.profile;
+
+  document.getElementById("dSafety").textContent = d.safety_score.toFixed(1);
+  const safetyBar = document.getElementById("dSafetyBar");
+  safetyBar.style.width = `${d.safety_score}%`;
+  safetyBar.style.background = d.safety_score >= 50 ? "#10b981" : "#f59e0b";
+
+  document.getElementById("dCalm").textContent = d.calmness_score.toFixed(1);
+  const calmBar = document.getElementById("dCalmBar");
+  calmBar.style.width = `${d.calmness_score}%`;
+  calmBar.style.background = d.calmness_score >= 50 ? "#38bdf8" : "#f59e0b";
+
+  const famScore = d.family_score ?? 50.0;
+  document.getElementById("dFamily").textContent = famScore.toFixed(1);
+  const famBar = document.getElementById("dFamilyBar");
+  famBar.style.width = `${famScore}%`;
+  famBar.style.background = famScore >= 50 ? "#10b981" : "#f59e0b";
+
   document.getElementById("dCounts").innerHTML = Object.entries(d.counts)
-    .map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("");
+    .map(([k, v]) => `<tr><td>${k.replace("_", " ")}</td><td>${v}</td></tr>`).join("");
+
   document.getElementById("detail").style.display = "block";
+}
+
+document.getElementById("closeDetail").addEventListener("click", () => {
+  document.getElementById("detail").style.display = "none";
+  state.selectedCell = null;
+  syncURL();
+});
+
+/* ---- Comparison Workflow ---- */
+document.getElementById("startCompareBtn").addEventListener("click", () => {
+  if (!state.zoneA) return;
+  state.comparing = true;
+  document.getElementById("detail").style.display = "none";
+  document.getElementById("compareBanner").style.display = "flex";
+});
+
+document.getElementById("cancelCompare").addEventListener("click", () => {
+  state.comparing = false;
+  document.getElementById("compareBanner").style.display = "none";
+});
+
+async function completeComparison(cellB) {
+  state.comparing = false;
+  document.getElementById("compareBanner").style.display = "none";
+  const b = await fetchJSON(`${API}/api/zones/${cellB}`);
+  state.zoneB = b;
+  renderCompareModal(state.zoneA, state.zoneB);
+}
+
+function renderCompareModal(za, zb) {
+  const modal = document.getElementById("comparePanel");
+  const grid = document.getElementById("compareGrid");
+
+  const diffTag = (valA, valB) => {
+    const diff = valB - valA;
+    if (Math.abs(diff) < 0.1) return `<span class="delta-pill" style="background:rgba(255,255,255,0.1)">0.0</span>`;
+    const cls = diff > 0 ? "delta-pos" : "delta-neg";
+    const sign = diff > 0 ? "+" : "";
+    return `<span class="delta-pill ${cls}">${sign}${diff.toFixed(1)}</span>`;
+  };
+
+  const allKeys = Array.from(new Set([...Object.keys(za.counts), ...Object.keys(zb.counts)]));
+
+  grid.innerHTML = `
+    <div class="compare-col">
+      <div class="compare-header">Zone A: ${za.h3.slice(0, 10)}…</div>
+      <div style="font-size:11px; font-weight:600; margin-bottom:8px; color:${PROFILE_COLORS[za.profile] || '#fff'}">${za.profile}</div>
+      <div class="score-line"><span>Sécurité</span><b>${za.safety_score.toFixed(1)}</b></div>
+      <div class="score-line"><span>Quiétude</span><b>${za.calmness_score.toFixed(1)}</b></div>
+      <div class="score-line"><span>Familial</span><b>${(za.family_score ?? 50).toFixed(1)}</b></div>
+      <table style="width:100%; font-size:10px; margin-top:8px;">
+        ${allKeys.map(k => `<tr><td style="color:var(--muted)">${k.replace('_', ' ')}</td><td style="text-align:right"><b>${za.counts[k] ?? 0}</b></td></tr>`).join('')}
+      </table>
+    </div>
+    <div class="compare-col">
+      <div class="compare-header">Zone B: ${zb.h3.slice(0, 10)}…</div>
+      <div style="font-size:11px; font-weight:600; margin-bottom:8px; color:${PROFILE_COLORS[zb.profile] || '#fff'}">${zb.profile}</div>
+      <div class="score-line"><span>Sécurité</span><span><b>${zb.safety_score.toFixed(1)}</b> ${diffTag(za.safety_score, zb.safety_score)}</span></div>
+      <div class="score-line"><span>Quiétude</span><span><b>${zb.calmness_score.toFixed(1)}</b> ${diffTag(za.calmness_score, zb.calmness_score)}</span></div>
+      <div class="score-line"><span>Familial</span><span><b>${(zb.family_score ?? 50).toFixed(1)}</b> ${diffTag(za.family_score ?? 50, zb.family_score ?? 50)}</span></div>
+      <table style="width:100%; font-size:10px; margin-top:8px;">
+        ${allKeys.map(k => {
+          const diff = (zb.counts[k] ?? 0) - (za.counts[k] ?? 0);
+          const diffStr = diff !== 0 ? `<span style="font-size:9px; color:${diff > 0 ? '#10b981':'#ef4444'}">${diff > 0 ? '+':''}${diff}</span>` : '';
+          return `<tr><td style="color:var(--muted)">${k.replace('_', ' ')}</td><td style="text-align:right"><b>${zb.counts[k] ?? 0}</b> ${diffStr}</td></tr>`;
+        }).join('')}
+      </table>
+    </div>
+  `;
+  modal.style.display = "block";
+}
+
+document.getElementById("closeCompare").addEventListener("click", () => {
+  document.getElementById("comparePanel").style.display = "none";
+});
+
+/* ---- Basemap Switcher ---- */
+document.getElementById("basemapSwitcher").addEventListener("click", (e) => {
+  const btn = e.target.closest(".bm-btn");
+  if (!btn || !btn.dataset.style) return;
+  const styleKey = btn.dataset.style;
+  if (styleKey === state.currentBasemap) return;
+  state.currentBasemap = styleKey;
+  document.querySelectorAll("#basemapSwitcher .bm-btn").forEach(b => b.classList.toggle("active", b === btn));
+  map.setStyle(BASEMAP_STYLES[styleKey]);
+  map.once("style.load", () => {
+    renderZones();
+  });
+});
+
+/* ---- Address Search Bar (Nominatim) ---- */
+const searchInput = document.getElementById("searchInput");
+const searchResults = document.getElementById("searchResults");
+const searchClear = document.getElementById("searchClear");
+let searchDebounce = null;
+
+searchInput.addEventListener("input", (e) => {
+  const val = e.target.value.trim();
+  searchClear.style.display = val.length ? "block" : "none";
+  clearTimeout(searchDebounce);
+  if (val.length < 2) {
+    searchResults.style.display = "none";
+    return;
+  }
+  searchDebounce = setTimeout(async () => {
+    try {
+      const q = encodeURIComponent(val + ", Canada");
+      const url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&addressdetails=1&countrycodes=ca`;
+      const res = await fetch(url, { headers: { "Accept-Language": "fr" } });
+      const items = await res.json();
+      if (!items.length) {
+        searchResults.innerHTML = `<div class="search-item" style="color:var(--muted)">Aucun résultat trouvé au Canada</div>`;
+      } else {
+        searchResults.innerHTML = items.map(it => `
+          <div class="search-item" data-lat="${it.lat}" data-lng="${it.lon}" data-name="${it.display_name}">
+            <b>${it.name || it.display_name.split(",")[0]}</b><br>
+            <span style="font-size:9px; color:var(--muted)">${it.display_name}</span>
+          </div>
+        `).join("");
+      }
+      searchResults.style.display = "block";
+    } catch (err) {
+      console.warn("Geocode error", err);
+    }
+  }, 320);
+});
+
+searchClear.addEventListener("click", () => {
+  searchInput.value = "";
+  searchClear.style.display = "none";
+  searchResults.style.display = "none";
+  if (searchMarker) searchMarker.remove();
+});
+
+searchResults.addEventListener("click", async (e) => {
+  const item = e.target.closest(".search-item");
+  if (!item || !item.dataset.lat) return;
+  const lat = parseFloat(item.dataset.lat);
+  const lng = parseFloat(item.dataset.lng);
+  searchResults.style.display = "none";
+  searchInput.value = item.dataset.name.split(",")[0];
+
+  if (searchMarker) searchMarker.remove();
+  searchMarker = new maplibregl.Marker({ color: "#38bdf8" })
+    .setLngLat([lng, lat])
+    .addTo(map);
+
+  try {
+    const loc = await fetchJSON(`${API}/api/locate?lat=${lat}&lng=${lng}&resolution=${state.resolution}`);
+    if (loc && loc.h3) {
+      if (loc.city && loc.city !== state.city) {
+        await switchCity(loc.city, false);
+      }
+      map.flyTo({ center: [lng, lat], zoom: 14.5, essential: true });
+      showDetail(loc.h3);
+    }
+  } catch (err) {
+    console.warn("Locate error", err);
+    map.flyTo({ center: [lng, lat], zoom: 14.5, essential: true });
+  }
+});
+
+/* ---- Deep Linking URL Sync ---- */
+function syncURL() {
+  const p = new URLSearchParams();
+  p.set("city", state.city);
+  p.set("res", state.resolution);
+  p.set("metric", state.metric);
+  if (state.selectedCell) p.set("cell", state.selectedCell);
+  const newRel = window.location.pathname + "?" + p.toString();
+  window.history.replaceState(null, "", newRel);
+}
+
+function restoreFromURL() {
+  const p = new URLSearchParams(window.location.search);
+  if (p.has("city")) {
+    const c = p.get("city").toLowerCase();
+    if (CANADIAN_CITIES[c]) state.city = c;
+  }
+  if (p.has("res")) {
+    const r = parseInt(p.get("res"));
+    if ([8, 9].includes(r)) state.resolution = r;
+  }
+  if (p.has("metric")) {
+    const m = p.get("metric");
+    if (["safety_score", "calmness_score", "family_score", "profile"].includes(m)) state.metric = m;
+  }
+  const citySelect = document.getElementById("citySelect");
+  if (citySelect) citySelect.value = state.city;
+  const cfg = CANADIAN_CITIES[state.city];
+  if (cfg) {
+    const badge = document.getElementById("cityBadge");
+    if (badge) badge.textContent = `${cfg.name} (${cfg.province})`;
+    searchInput.placeholder = `Rechercher une adresse à ${cfg.name} ou au Canada...`;
+    map.setCenter(cfg.center);
+    map.setZoom(cfg.zoom);
+  }
+  document.querySelectorAll("#metricSeg button").forEach(b => b.classList.toggle("active", b.dataset.metric === state.metric));
+  document.querySelectorAll("#resSeg button").forEach(b => b.classList.toggle("active", parseInt(b.dataset.res) === state.resolution));
+  return p.get("cell");
 }
 
 /* ---- simulation sliders ---- */
@@ -185,34 +1039,48 @@ async function buildSliders() {
   for (const feature of state.weights.features) {
     const sw = state.weights.safety_weights[feature] ?? 0;
     const cw = state.weights.calmness_weights[feature] ?? 0;
+    const fw = (state.weights.family_weights && state.weights.family_weights[feature]) ?? 0;
+    const name = feature.replace("_", " ");
     box.insertAdjacentHTML("beforeend", `
-      <label class="slider-label">${feature} — sécurité <span id="sv_${feature}">${sw.toFixed(2)}</span></label>
-      <input type="range" min="-0.5" max="0.5" step="0.05" value="${sw}" data-kind="safety" data-feature="${feature}">
-      <label class="slider-label">${feature} — quiétude <span id="cv_${feature}">${cw.toFixed(2)}</span></label>
-      <input type="range" min="-0.5" max="0.5" step="0.05" value="${cw}" data-kind="calmness" data-feature="${feature}">
+      <div style="margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;">
+        <label class="slider-label"><span>${name} · Sécurité</span><b id="sv_${feature}">${sw.toFixed(2)}</b></label>
+        <input type="range" min="-0.5" max="0.5" step="0.05" value="${sw}" data-kind="safety" data-feature="${feature}">
+        <label class="slider-label"><span>${name} · Quiétude</span><b id="cv_${feature}">${cw.toFixed(2)}</b></label>
+        <input type="range" min="-0.5" max="0.5" step="0.05" value="${cw}" data-kind="calmness" data-feature="${feature}">
+        <label class="slider-label"><span>${name} · Familial</span><b id="fv_${feature}">${fw.toFixed(2)}</b></label>
+        <input type="range" min="-0.5" max="0.5" step="0.05" value="${fw}" data-kind="family" data-feature="${feature}">
+      </div>
     `);
   }
   box.addEventListener("input", (e) => {
     const el = e.target;
     if (el.tagName !== "INPUT") return;
-    const id = (el.dataset.kind === "safety" ? "sv_" : "cv_") + el.dataset.feature;
+    const prefix = el.dataset.kind === "safety" ? "sv_" : (el.dataset.kind === "calmness" ? "cv_" : "fv_");
+    const id = prefix + el.dataset.feature;
     document.getElementById(id).textContent = Number(el.value).toFixed(2);
   });
 }
 
 async function applySimulation() {
-  const safety = {}, calm = {};
+  const safety = {}, calm = {}, family = {};
   document.querySelectorAll("#sliders input").forEach((el) => {
     const v = Number(el.value);
     if (el.dataset.kind === "safety") safety[el.dataset.feature] = v;
-    else calm[el.dataset.feature] = v;
+    else if (el.dataset.kind === "calmness") calm[el.dataset.feature] = v;
+    else family[el.dataset.feature] = v;
   });
-  const body = { resolution: state.resolution, safety_weights: safety, calmness_weights: calm };
+  const body = {
+    resolution: state.resolution,
+    city: state.city,
+    safety_weights: safety,
+    calmness_weights: calm,
+    family_weights: family
+  };
   const sim = await fetchJSON(`${API}/api/simulate`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   });
-  state.simScores = Object.fromEntries(sim.zones.map((z) => [z.h3, { s: z.safety_score, c: z.calmness_score }]));
-  document.getElementById("simState").textContent = "Simulation active — les couleurs reflètent vos poids.";
+  state.simScores = Object.fromEntries(sim.zones.map((z) => [z.h3, { s: z.safety_score, c: z.calmness_score, f: z.family_score }]));
+  document.getElementById("simState").textContent = "Simulation active — scores recalculés en direct.";
   renderZones();
 }
 
@@ -224,28 +1092,42 @@ function resetSimulation() {
 }
 
 /* ---- UI wiring ---- */
+document.getElementById("citySelect").addEventListener("change", (e) => {
+  switchCity(e.target.value, true);
+});
+
 document.getElementById("metricSeg").addEventListener("click", (e) => {
-  if (!e.target.dataset.metric) return;
-  state.metric = e.target.dataset.metric;
-  document.querySelectorAll("#metricSeg button").forEach((b) => b.classList.toggle("active", b === e.target));
+  const btn = e.target.closest("button");
+  if (!btn || !btn.dataset.metric) return;
+  state.metric = btn.dataset.metric;
+  document.querySelectorAll("#metricSeg button").forEach((b) => b.classList.toggle("active", b === btn));
+  syncURL();
   renderZones();
 });
+
 document.getElementById("resSeg").addEventListener("click", async (e) => {
-  if (!e.target.dataset.res) return;
-  state.resolution = Number(e.target.dataset.res);
+  const btn = e.target.closest("button");
+  if (!btn || !btn.dataset.res) return;
+  state.resolution = Number(btn.dataset.res);
   state.simScores = null;
   document.getElementById("simState").textContent = "";
-  document.querySelectorAll("#resSeg button").forEach((b) => b.classList.toggle("active", b === e.target));
+  document.querySelectorAll("#resSeg button").forEach((b) => b.classList.toggle("active", b === btn));
+  syncURL();
   await loadZones();
   await loadStats();
 });
+
 document.getElementById("applySim").addEventListener("click", applySimulation);
 document.getElementById("resetSim").addEventListener("click", resetSimulation);
 
 map.on("load", async () => {
+  const initialCell = restoreFromURL();
   await buildSliders();
   await loadZones();
   await loadStats();
+  if (initialCell) {
+    showDetail(initialCell);
+  }
 });
 </script>
 </body>

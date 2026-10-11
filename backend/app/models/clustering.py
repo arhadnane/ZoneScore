@@ -1,4 +1,5 @@
 """Zone profiling via K-Means clustering on robust-scaled feature counts."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -24,7 +25,9 @@ _DEFAULT_PROFILE = "Tranquil residential"
 def _label_centroid(centroid: pd.Series, global_std: pd.Series) -> str:
     """Derive a human-readable profile from a cluster centroid signature."""
     for feature, _, label in _PROFILE_RULES:
-        if feature in centroid.index and centroid[feature] > 0.75 * max(global_std.get(feature, 1.0), 1e-9):
+        if feature in centroid.index and centroid[feature] > 0.75 * max(
+            global_std.get(feature, 1.0), 1e-9
+        ):
             return label
     return _DEFAULT_PROFILE
 

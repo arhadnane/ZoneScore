@@ -1,10 +1,15 @@
 """H3 grid generation tests."""
+
 from __future__ import annotations
 
 import h3
+from app.etl.grid import (
+    cell_polygon_coords,
+    fallback_boundary,
+    generate_grid,
+    haversine_km,
+)
 from shapely.geometry import Point
-
-from app.etl.grid import cell_polygon_coords, fallback_boundary, generate_grid, haversine_km
 
 
 def test_fallback_boundary_covers_quebec(settings):

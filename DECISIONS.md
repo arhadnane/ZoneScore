@@ -14,3 +14,7 @@
 | 10 | Simulation endpoint recomputes scores server-side from persisted feature counts with user-supplied weight overrides. | Keeps the scoring model authoritative in one place; frontend stays a thin client. |
 | 11 | API loads Parquet into an in-process cache at startup; if artifacts are missing the ETL pipeline runs automatically (offline mode unless configured otherwise). | Single-command launch (`run.sh` / `make run`) works from a clean clone. |
 | 12 | Tests run fully offline (`URBIS_OFFLINE=1`) against a temporary data directory. | Deterministic, network-free CI. |
+| 13 | Pre-cached scaled features in `ZoneStore` (`scaled_frame`) for `/api/simulate`. | Eliminates redundant `RobustScaler.fit_transform()` calls on what-if simulations, achieving sub-10ms response times. |
+| 14 | Automatic GZip compression on FastAPI (`GZipMiddleware`, `minimum_size=1000`). | Drastically reduces GeoJSON network transfer payload (~70-80% compression). |
+| 15 | H3 polygon coverage expansion for large urban spaces (parks, industrial zones). | Replaces single representative points with `h3.geo_to_cells` to avoid concentrating multi-hectare parks in a single cell. |
+| 16 | Multi-Metropolitan Canadian Architecture (`URBIS Canada`). | Partitions urban coverage across major Canadian Metropolitan Areas (CMAs: Québec, Montréal, Ottawa-Gatineau, Toronto, Vancouver) with dedicated Parquet partitions, DuckDB views, and client-side city switching, avoiding national-scale Overpass timeouts and memory bloat. |

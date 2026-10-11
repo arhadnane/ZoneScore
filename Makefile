@@ -9,7 +9,7 @@ PYTHON    := $(VENV)/bin/python
 endif
 PORT      ?= 8000
 
-.PHONY: all venv install etl test run dev clean
+.PHONY: all venv install etl test run dev clean lint format
 
 all: install test run
 
@@ -19,6 +19,12 @@ venv:
 install: venv
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install -r backend/requirements.txt
+
+lint:
+	$(PYTHON) -m ruff check backend
+
+format:
+	$(PYTHON) -m ruff format backend
 
 etl:
 	cd backend && ../$(PYTHON) -m app.etl.pipeline
