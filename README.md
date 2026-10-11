@@ -1,5 +1,7 @@
 # ZoneScore — GeoSafe Cross-Border Urban Analytics Platform
 
+![ZoneScore Platform Preview](docs/images/zonescore_preview.png)
+
 Spatial data-science platform scoring **Safety** (perceived-safety proxies), **Calmness** (tranquility vs. urban vibrancy), and **Family-Friendliness** (schools, parks, quiet streets) across major North American metropolitan areas on an **Uber H3** hexagonal grid (resolutions 8 & 9). Bare-metal stack — no Docker, no standalone database. Québec is one of the supported cities alongside major Canadian and US metropolitan areas.
 
 Supported Metros — pick **Pays › Province / État › Ville** in the UI:
