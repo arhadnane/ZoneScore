@@ -1,4 +1,4 @@
-"""In-process zone data store: loads Parquet artifacts and caches GeoJSON across Canadian cities."""
+"""In-process zone data store: loads Parquet artifacts and caches GeoJSON."""
 
 from __future__ import annotations
 

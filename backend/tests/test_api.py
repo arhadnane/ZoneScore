@@ -72,7 +72,7 @@ def test_simulation_rejects_unknown_feature(client):
 def test_index_served(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert "URBISQC" in response.text
+    assert "ZoneScore" in response.text
 
 
 def test_gzip_compression(client):

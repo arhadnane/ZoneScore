@@ -63,7 +63,7 @@ class StatsResponse(BaseModel):
 
 class SimulationRequest(BaseModel):
     resolution: int = Field(default=8, description="H3 resolution (8 or 9)")
-    city: str = Field(default="quebec", description="Target Canadian city")
+    city: str = Field(default="quebec", description="Target city id")
     safety_weights: dict[str, float] = Field(default_factory=dict)
     calmness_weights: dict[str, float] = Field(default_factory=dict)
     family_weights: dict[str, float] = Field(default_factory=dict)

@@ -1,4 +1,4 @@
-"""Canadian metropolitan cities configuration and spatial bounding boxes."""
+"""Metropolitan cities configuration and spatial bounding boxes."""
 
 from __future__ import annotations
 
@@ -255,7 +255,7 @@ def get_city(city_id: str | None = None) -> CityConfig:
 
 
 def list_cities() -> Sequence[CityConfig]:
-    """Return all configured Canadian cities."""
+    """Return all configured metropolitan cities."""
     return tuple(CITIES.values())
 
 

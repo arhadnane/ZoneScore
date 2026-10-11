@@ -31,7 +31,7 @@ def build_zone_table(
 
 
 def register_duckdb(settings: Settings) -> None:
-    """(Re)create DuckDB views over the processed Parquet artifacts for all Canadian cities."""
+    """(Re)create DuckDB views over the processed Parquet artifacts for all configured cities."""
     from app.core.cities import list_cities
 
     settings.processed_dir.mkdir(parents=True, exist_ok=True)
@@ -95,7 +95,7 @@ def run_pipeline(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="URBIS Canada ETL Pipeline")
+    parser = argparse.ArgumentParser(description="ZoneScore Multi-City ETL Pipeline")
     parser.add_argument("--cities", type=str, default="all", help="Comma-separated cities or 'all'")
     parser.add_argument("--offline", action="store_true", help="Run in offline/synthetic mode")
     args = parser.parse_args()

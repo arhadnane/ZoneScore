@@ -1,1 +1,1 @@
-"""URBISQC backend application package."""
+"""ZoneScore backend application package."""

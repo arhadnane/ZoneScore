@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
     store = get_store()
     store.load(run_etl_if_missing=True)
     log.info(
-        "Zone store ready: Canadian cities loaded=%s",
+        "Zone store ready: cities loaded=%s",
         {c: store.zone_counts(c) for c in store.loaded_cities()},
     )
     yield

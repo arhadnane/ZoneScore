@@ -1,4 +1,4 @@
-"""API routes: zones, scores, statistics, what-if simulation, and Canadian cities."""
+"""API routes: zones, scores, statistics, what-if simulation, and supported cities."""
 
 from __future__ import annotations
 
@@ -80,10 +80,10 @@ def health() -> HealthResponse:
 
 @router.get("/zones")
 def zones(
-    city: str = Query(default="quebec", description="Canadian city id"),
+    city: str = Query(default="quebec", description="City id"),
     resolution: int = Query(default=8, ge=0, le=15),
 ) -> dict:
-    """GeoJSON FeatureCollection of scored H3 zones for a Canadian city."""
+    """GeoJSON FeatureCollection of scored H3 zones for a city."""
     _validate_resolution(resolution, city=city)
     return get_store().geojson(resolution, city=city)
 
@@ -92,7 +92,9 @@ def zones(
 def zone_detail(
     cell: str,
     city: str | None = Query(default=None, description="Optional city hint"),
-    live: bool = Query(default=True, description="Enrich with live OpenStreetMap data for this cell"),
+    live: bool = Query(
+        default=True, description="Enrich with live OpenStreetMap data for this cell"
+    ),
 ) -> ZoneDetail:
     detail = get_store().zone_detail(cell, city=city)
     if detail is None:
@@ -114,7 +116,7 @@ def zone_detail(
 
 @router.get("/stats", response_model=StatsResponse)
 def stats(
-    city: str = Query(default="quebec", description="Canadian city id"),
+    city: str = Query(default="quebec", description="City id"),
     resolution: int = Query(default=8, ge=0, le=15),
 ) -> StatsResponse:
     _validate_resolution(resolution, city=city)
@@ -193,12 +195,12 @@ def locate(
     resolution: int = Query(default=8, ge=0, le=15),
     city: str | None = Query(default=None, description="Optional city target"),
 ) -> dict:
-    """Find the H3 cell at the given coordinates in the matched or targeted Canadian city."""
+    """Find the H3 cell at the given coordinates in the matched or targeted city."""
     import h3
 
     from app.etl.grid import cell_centroid, haversine_km
 
-    # If city is not explicitly specified, auto-detect the Canadian city
+    # If city is not explicitly specified, auto-detect the nearest city
     matched_city = get_city(city) if city else find_city_by_coords(lat, lng)
     cid = matched_city.id
 

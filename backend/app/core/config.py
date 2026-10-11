@@ -14,7 +14,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="URBIS_", case_sensitive=False)
 
-    app_name: str = "URBISQC — GeoSafe Québec"
+    app_name: str = "ZoneScore — GeoSafe Urban Platform"
     version: str = "1.0.0"
 
     # Spatial scope
@@ -47,10 +47,15 @@ class Settings(BaseSettings):
 
     @property
     def duckdb_path(self) -> Path:
-        return self.processed_dir / "urbisqc.duckdb"
+        db_file = self.processed_dir / "zonescore.duckdb"
+        if not db_file.exists():
+            legacy_db = self.processed_dir / "urbisqc.duckdb"
+            if legacy_db.exists():
+                return legacy_db
+        return db_file
 
     def city_parquet(self, city: str, resolution: int) -> Path:
-        """Parquet file path for a specific Canadian city and resolution."""
+        """Parquet file path for a specific city and resolution."""
         city_file = self.processed_dir / f"zones_{city.lower()}_res{resolution}.parquet"
         if city.lower() == "quebec" and not city_file.exists():
             legacy_file = self.processed_dir / f"zones_res{resolution}.parquet"
@@ -59,7 +64,7 @@ class Settings(BaseSettings):
         return city_file
 
     def zones_parquet(self, resolution: int) -> Path:
-        """Legacy access for Québec City zones."""
+        """Default access for Québec City zones."""
         return self.city_parquet("quebec", resolution)
 
 

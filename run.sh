@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# URBISQC — single-entrypoint launcher (bare-metal, no Docker).
+# ZoneScore — single-entrypoint launcher (bare-metal, no Docker).
 # Usage: ./run.sh [--offline] [--rebuild] [--port N]
 set -euo pipefail
 
@@ -36,9 +36,9 @@ echo "[run.sh] Installing dependencies…"
 
 if [[ "${REBUILD:-0}" == "1" ]]; then
   echo "[run.sh] Rebuilding data artifacts…"
-  rm -f data/processed/zones_res*.parquet data/processed/urbisqc.duckdb
+  rm -f data/processed/zones_res*.parquet data/processed/zones_*.parquet data/processed/zonescore.duckdb data/processed/urbisqc.duckdb
 fi
 
-echo "[run.sh] Starting URBISQC on http://127.0.0.1:${PORT} …"
+echo "[run.sh] Starting ZoneScore on http://127.0.0.1:${PORT} …"
 cd backend
 exec "../$VENV_PY" -m uvicorn app.main:app --host 127.0.0.1 --port "$PORT"

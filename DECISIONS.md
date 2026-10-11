@@ -1,8 +1,8 @@
-# Architectural Decision Log — URBIS / GeoSafe Cross-Border
+# Architectural Decision Log — ZoneScore / GeoSafe Cross-Border Platform
 
 | # | Decision | Rationale |
 |---|----------|-----------|
-| 1 | Workspace root (`ZoneScore/`) is used directly as the `urbisqc/` project root. | Avoids a redundant nesting level; all spec paths are preserved relative to root. |
+| 1 | Workspace root (`ZoneScore/`) is used directly as the project root. | Avoids a redundant nesting level; all spec paths are preserved relative to root. |
 | 2 | H3 v4 Python API (`h3>=4.0`) with `geo_to_cells` on shapely geometries. | v4 is the maintained API; `__geo_interface__` integration removes manual coordinate munging. |
 | 3 | Geometry is **not persisted**; hex boundaries are derived on demand from H3 cell ids via `cell_to_boundary`. | H3 ids are a lossless spatial encoding — persisting only ids + attributes keeps Parquet small and schema simple. |
 | 4 | Embedded storage = Parquet (canonical) + DuckDB file exposing views over the Parquet. | Zero standalone services; DuckDB gives ad-hoc SQL analytics over the same files. |

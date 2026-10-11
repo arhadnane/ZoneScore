@@ -1,4 +1,4 @@
-# URBISQC — bare-metal orchestration (no Docker).
+# ZoneScore — bare-metal orchestration (no Docker).
 # Windows note: use Git Bash / WSL for `make`, or call the equivalent commands directly.
 
 VENV      := .venv
@@ -42,4 +42,4 @@ dev:
 	cd backend && ../$(PYTHON) -m uvicorn app.main:app --host 127.0.0.1 --port $(PORT) --reload
 
 clean:
-	rm -f data/processed/zones_res*.parquet data/processed/urbisqc.duckdb
+	rm -f data/processed/zones_res*.parquet data/processed/zones_*.parquet data/processed/zonescore.duckdb data/processed/urbisqc.duckdb

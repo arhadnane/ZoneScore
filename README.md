@@ -1,6 +1,6 @@
-# URBIS — GeoSafe Cross-Border Urban Analytics Platform
+# ZoneScore — GeoSafe Cross-Border Urban Analytics Platform
 
-Spatial data-science platform scoring **Safety** (perceived-safety proxies), **Calmness** (tranquility vs. urban vibrancy), and **Family-Friendliness** (schools, parks, quiet streets) across major North American metropolitan areas on an **Uber H3** hexagonal grid (resolutions 8 & 9). Bare-metal stack — no Docker, no standalone database.
+Spatial data-science platform scoring **Safety** (perceived-safety proxies), **Calmness** (tranquility vs. urban vibrancy), and **Family-Friendliness** (schools, parks, quiet streets) across major North American metropolitan areas on an **Uber H3** hexagonal grid (resolutions 8 & 9). Bare-metal stack — no Docker, no standalone database. Québec is one of the supported cities alongside major Canadian and US metropolitan areas.
 
 Supported Metros — pick **Pays › Province / État › Ville** in the UI:
 - **Canada**: 
@@ -71,7 +71,7 @@ Open **http://127.0.0.1:8000** :
    - Priority 3: Deterministic synthetic generator with downtown-distance gradient.
 4. **Scores** — RobustScaler → weighted blend → percentile rank (0–100) for Safety, Calmness, and Family indices.
 5. **Profiles** — K-Means (k=5) with human-readable cluster labels.
-6. **Storage** — Parquet per resolution and city in `data/processed/` + DuckDB views (`zones_{city}_res{res}`) in `data/processed/urbisqc.duckdb`.
+6. **Storage** — Parquet per resolution and city in `data/processed/` + DuckDB views (`zones_{city}_res{res}`) in `data/processed/zonescore.duckdb`.
 
 ## API Endpoints
 
@@ -103,7 +103,7 @@ Fully offline & deterministic — pipeline, scoring, clustering, and end-to-end 
 ## Ad-hoc analytics (DuckDB)
 
 ```sql
--- .venv python: import duckdb; duckdb.connect('data/processed/urbisqc.duckdb')
+-- .venv python: import duckdb; duckdb.connect('data/processed/zonescore.duckdb')
 SELECT profile, count(*), avg(safety_score) FROM zones_montreal_res8 GROUP BY profile;
 ```
 

@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+
 import duckdb
-import pandas as pd
-from shapely.geometry import Point, Polygon
 import h3
+import pandas as pd
+from shapely.geometry import Polygon
 
 from app.core.constants import FEATURES
 from app.core.logging import get_logger
@@ -20,17 +21,24 @@ def extract_city_features_from_pbf(
     cells: list[str],
     resolution: int,
 ) -> pd.DataFrame:
-    """Read local OSM PBF using DuckDB spatial, filter by boundary bbox and tags, and bin into H3 cells."""
+    """Read local OSM PBF via DuckDB spatial, filter by boundary bbox, and bin into H3."""
     minx, miny, maxx, maxy = boundary.bounds
 
-    log.info("Extracting features from %s in bbox (%.3f, %.3f, %.3f, %.3f)...", pbf_path.name, minx, miny, maxx, maxy)
+    log.info(
+        "Extracting features from %s in bbox (%.3f, %.3f, %.3f, %.3f)...",
+        pbf_path.name,
+        minx,
+        miny,
+        maxx,
+        maxy,
+    )
 
     con = duckdb.connect()
     con.execute("LOAD spatial;")
 
     # Query nodes inside the bbox with tags relevant to our features
     query = f"""
-    SELECT 
+    SELECT
         id,
         lat,
         lon,
@@ -103,6 +111,10 @@ def extract_city_features_from_pbf(
     for feature in FEATURES:
         df[feature] = pd.Series(counts[feature])
 
-    log.info("Built 100%% real PBF counts for %d cells (res %d). Total features found: %d",
-             len(df), resolution, df[list(FEATURES)].to_numpy().sum())
+    log.info(
+        "Built 100%% real PBF counts for %d cells (res %d). Total features found: %d",
+        len(df),
+        resolution,
+        df[list(FEATURES)].to_numpy().sum(),
+    )
     return df

@@ -32,8 +32,9 @@ def get_city_boundary(
     """Resolve the city boundary via OSM geocoding, falling back to the bbox."""
     s = settings or get_settings()
     if s.offline or city:
-        # Use city bbox bounding-box boundary: fast, focused on urban core, immune to Overpass geocoding timeouts
+        # Use city bbox boundary: fast, focused on urban core, immune to Overpass timeouts
         return fallback_boundary(s, city=city)
+    query = s.city_query
     try:
         import osmnx as ox
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>URBISQC — GeoSafe Québec</title>
+<title>ZoneScore — GeoSafe Urban Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -447,7 +447,7 @@
 <!-- Left Controls Panel -->
 <div id="controls" class="panel">
   <div class="brand">
-    <h1>URBIS Canada</h1>
+    <h1>ZoneScore</h1>
     <span class="badge-tag" id="cityBadge">Québec (QC)</span>
   </div>
   <div class="sub">Plateforme d'analyse et scoring spatial multi-métropoles sur grille H3.</div>
@@ -556,12 +556,12 @@
 const API = "";
 // All supported metros (Canada + USA), filled from /api/cities at startup.
 // Shape: { id: { name, province, provinceName, country, countryName, center:[lng,lat], zoom } }
-const CANADIAN_CITIES = {};
+const SUPPORTED_CITIES = {};
 
 async function loadCities() {
   const list = await fetchJSON(`${API}/api/cities`);
   for (const c of list) {
-    CANADIAN_CITIES[c.id] = {
+    SUPPORTED_CITIES[c.id] = {
       name: c.name,
       province: c.province,
       provinceName: c.province_name || c.province,
@@ -580,19 +580,19 @@ function fillSelect(el, items, selected) {
 
 // Rebuild the three cascading selectors so they reflect the given city.
 function syncSelectors(cityId) {
-  const cfg = CANADIAN_CITIES[cityId];
+  const cfg = SUPPORTED_CITIES[cityId];
   if (!cfg) return;
   const countries = new Map();
-  Object.values(CANADIAN_CITIES).forEach((c) => countries.set(c.country, c.countryName));
+  Object.values(SUPPORTED_CITIES).forEach((c) => countries.set(c.country, c.countryName));
   fillSelect(document.getElementById("countrySelect"), [...countries], cfg.country);
 
   const provinces = new Map();
-  Object.values(CANADIAN_CITIES)
+  Object.values(SUPPORTED_CITIES)
     .filter((c) => c.country === cfg.country)
     .forEach((c) => provinces.set(c.province, c.provinceName));
   fillSelect(document.getElementById("provinceSelect"), [...provinces], cfg.province);
 
-  const cities = Object.entries(CANADIAN_CITIES)
+  const cities = Object.entries(SUPPORTED_CITIES)
     .filter(([, c]) => c.country === cfg.country && c.province === cfg.province)
     .map(([id, c]) => [id, c.name]);
   fillSelect(document.getElementById("citySelect"), cities, cityId);
@@ -690,14 +690,14 @@ async function loadZones() {
 }
 
 async function switchCity(cityId, fly = true) {
-  if (!CANADIAN_CITIES[cityId]) return;
+  if (!SUPPORTED_CITIES[cityId]) return;
   state.city = cityId;
   syncSelectors(cityId);
-  const cfg = CANADIAN_CITIES[cityId];
+  const cfg = SUPPORTED_CITIES[cityId];
   const badgeEl = document.getElementById("cityBadge");
   if (badgeEl) badgeEl.textContent = `${cfg.name} (${cfg.province})`;
   const searchInput = document.getElementById("searchInput");
-  if (searchInput) searchInput.placeholder = `Rechercher une adresse à ${cfg.name} ou au Canada...`;
+  if (searchInput) searchInput.placeholder = `Rechercher une adresse à ${cfg.name}...`;
 
   if (fly) {
     map.flyTo({ center: cfg.center, zoom: cfg.zoom, essential: true });
@@ -1007,7 +1007,7 @@ searchInput.addEventListener("input", (e) => {
   }
   searchDebounce = setTimeout(async () => {
     try {
-      const cc = (CANADIAN_CITIES[state.city]?.country || "CA").toLowerCase();
+      const cc = (SUPPORTED_CITIES[state.city]?.country || "CA").toLowerCase();
       const ccName = cc === "us" ? "USA" : "Canada";
       const q = encodeURIComponent(val + ", " + ccName);
       const url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&addressdetails=1&countrycodes=${cc}`;
@@ -1080,7 +1080,7 @@ function restoreFromURL() {
   const p = new URLSearchParams(window.location.search);
   if (p.has("city")) {
     const c = p.get("city").toLowerCase();
-    if (CANADIAN_CITIES[c]) state.city = c;
+    if (SUPPORTED_CITIES[c]) state.city = c;
   }
   if (p.has("res")) {
     const r = parseInt(p.get("res"));
@@ -1091,11 +1091,11 @@ function restoreFromURL() {
     if (["safety_score", "calmness_score", "family_score", "profile"].includes(m)) state.metric = m;
   }
   syncSelectors(state.city);
-  const cfg = CANADIAN_CITIES[state.city];
+  const cfg = SUPPORTED_CITIES[state.city];
   if (cfg) {
     const badge = document.getElementById("cityBadge");
     if (badge) badge.textContent = `${cfg.name} (${cfg.province})`;
-    searchInput.placeholder = `Rechercher une adresse à ${cfg.name} ou au Canada...`;
+    searchInput.placeholder = `Rechercher une adresse à ${cfg.name}...`;
     map.setCenter(cfg.center);
     map.setZoom(cfg.zoom);
   }
@@ -1171,14 +1171,14 @@ document.getElementById("citySelect").addEventListener("change", (e) => {
 
 // Country change -> jump to the first city of that country (province/city lists follow)
 document.getElementById("countrySelect").addEventListener("change", (e) => {
-  const first = Object.entries(CANADIAN_CITIES).find(([, c]) => c.country === e.target.value);
+  const first = Object.entries(SUPPORTED_CITIES).find(([, c]) => c.country === e.target.value);
   if (first) switchCity(first[0], true);
 });
 
 // Province/State change -> jump to the first city of that region
 document.getElementById("provinceSelect").addEventListener("change", (e) => {
   const country = document.getElementById("countrySelect").value;
-  const first = Object.entries(CANADIAN_CITIES).find(
+  const first = Object.entries(SUPPORTED_CITIES).find(
     ([, c]) => c.country === country && c.province === e.target.value
   );
   if (first) switchCity(first[0], true);
