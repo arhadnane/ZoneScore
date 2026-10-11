@@ -60,14 +60,13 @@ class ZoneStore:
         return loaded_any
 
     def load(self, run_etl_if_missing: bool = True) -> None:
-        """Load all available city tables, running ETL for default city (quebec) if absent."""
-        legacy_res8 = self._settings.processed_dir / "zones_res8.parquet"
-        quebec_res8 = self._settings.city_parquet("quebec", 8)
-        if not legacy_res8.exists() and not quebec_res8.exists() and run_etl_if_missing:
-            log.info("Default artifacts missing; running ETL pipeline for Québec.")
+        """Load all available city tables, running ETL for default city (ottawa) if absent."""
+        ottawa_res8 = self._settings.city_parquet("ottawa", 8)
+        if not ottawa_res8.exists() and run_etl_if_missing:
+            log.info("Default artifacts missing; running ETL pipeline for Ottawa.")
             from app.etl.pipeline import run_pipeline
 
-            run_pipeline(self._settings, city_ids=["quebec"])
+            run_pipeline(self._settings, city_ids=["ottawa"])
 
         for city_cfg in list_cities():
             self.load_city(city_cfg.id, run_etl_if_missing=False)

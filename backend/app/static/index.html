@@ -425,7 +425,7 @@
 <div id="searchContainer">
   <div class="search-box">
     <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-    <input type="text" id="searchInput" placeholder="Rechercher une adresse au Canada (Québec, Montréal, Toronto...)" autocomplete="off" />
+    <input type="text" id="searchInput" placeholder="Rechercher une adresse à Ottawa..." autocomplete="off" />
     <button class="search-clear" id="searchClear">✕</button>
   </div>
   <div class="search-results" id="searchResults"></div>
@@ -448,7 +448,7 @@
 <div id="controls" class="panel">
   <div class="brand">
     <h1>ZoneScore</h1>
-    <span class="badge-tag" id="cityBadge">Québec (QC)</span>
+    <span class="badge-tag" id="cityBadge">Ottawa (ON)</span>
   </div>
   <div class="sub">Plateforme d'analyse et scoring spatial multi-métropoles sur grille H3.</div>
 
@@ -599,7 +599,7 @@ function syncSelectors(cityId) {
 }
 
 const state = {
-  city: "quebec",
+  city: "ottawa",
   metric: "safety_score",
   resolution: 8,
   weights: null,
@@ -629,8 +629,8 @@ const PROFILE_COLORS = {
 const map = new maplibregl.Map({
   container: "map",
   style: BASEMAP_STYLES.dark,
-  center: [-71.2429, 46.8288],
-  zoom: 11.2,
+  center: [-75.6972, 45.4215],
+  zoom: 12.2,
 });
 map.addControl(new maplibregl.NavigationControl(), "bottom-right");
 

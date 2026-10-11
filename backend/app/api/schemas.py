@@ -23,7 +23,7 @@ class HealthResponse(BaseModel):
     version: str
     resolutions: list[int]
     zones_loaded: dict[int, int]
-    cities: list[str] = Field(default_factory=lambda: ["quebec"])
+    cities: list[str] = Field(default_factory=lambda: ["ottawa"])
 
 
 class ZoneScore(BaseModel):
@@ -39,7 +39,7 @@ class ZoneDetail(ZoneScore):
     profile: str
     counts: dict[str, int]
     centroid: tuple[float, float]  # (lat, lng)
-    city: str = "quebec"
+    city: str = "ottawa"
     live_active: bool = False
     live_poi_samples: list[dict[str, str]] = Field(default_factory=list)
     live_total_elements: int = 0
@@ -58,12 +58,12 @@ class StatsResponse(BaseModel):
     family_p10: float = 50.0
     family_p90: float = 50.0
     profiles: dict[str, int]
-    city: str = "quebec"
+    city: str = "ottawa"
 
 
 class SimulationRequest(BaseModel):
     resolution: int = Field(default=8, description="H3 resolution (8 or 9)")
-    city: str = Field(default="quebec", description="Target city id")
+    city: str = Field(default="ottawa", description="Target city id")
     safety_weights: dict[str, float] = Field(default_factory=dict)
     calmness_weights: dict[str, float] = Field(default_factory=dict)
     family_weights: dict[str, float] = Field(default_factory=dict)
@@ -71,7 +71,7 @@ class SimulationRequest(BaseModel):
 
 class SimulationResponse(BaseModel):
     resolution: int
-    city: str = "quebec"
+    city: str = "ottawa"
     applied_safety_weights: dict[str, float]
     applied_calmness_weights: dict[str, float]
     applied_family_weights: dict[str, float] = Field(default_factory=dict)

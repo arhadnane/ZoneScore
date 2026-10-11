@@ -24,7 +24,7 @@ def settings():
 def pipeline_result(settings):
     from app.etl.pipeline import run_pipeline
 
-    return run_pipeline(settings, city_ids=["quebec", "montreal"])
+    return run_pipeline(settings, city_ids=["ottawa", "quebec", "montreal"])
 
 
 @pytest.fixture(scope="session")

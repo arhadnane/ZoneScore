@@ -12,8 +12,13 @@ from app.etl.grid import (
 from shapely.geometry import Point
 
 
-def test_fallback_boundary_covers_quebec(settings):
+def test_fallback_boundary_covers_default_city(settings):
     poly = fallback_boundary(settings)
+    assert poly.contains(Point(settings.downtown_lng, settings.downtown_lat))
+
+
+def test_fallback_boundary_covers_quebec(settings):
+    poly = fallback_boundary(settings, city="quebec")
     assert poly.contains(Point(-71.2075, 46.8131))
 
 

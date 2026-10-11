@@ -254,11 +254,11 @@ CITIES: dict[str, CityConfig] = {
     ),
 }
 
-DEFAULT_CITY_ID = "quebec"
+DEFAULT_CITY_ID = "ottawa"
 
 
 def get_city(city_id: str | None = None) -> CityConfig:
-    """Return the requested city configuration or the default (quebec)."""
+    """Return the requested city configuration or the default (ottawa)."""
     if not city_id:
         return CITIES[DEFAULT_CITY_ID]
     normalized = city_id.lower().strip()

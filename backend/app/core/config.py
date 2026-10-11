@@ -17,15 +17,15 @@ class Settings(BaseSettings):
     app_name: str = "ZoneScore — GeoSafe Urban Platform"
     version: str = "1.0.0"
 
-    # Spatial scope
-    city_query: str = "Québec (ville), Québec, Canada"
-    # Fallback bounding box (lon_min, lat_min, lon_max, lat_max) for Québec City core.
-    bbox_west: float = -71.415
-    bbox_south: float = 46.720
-    bbox_east: float = -71.130
-    bbox_north: float = 46.905
-    downtown_lat: float = 46.8131
-    downtown_lng: float = -71.2075
+    # Spatial scope (default: Ottawa, Ontario)
+    city_query: str = "Ottawa, Ontario, Canada"
+    # Fallback bounding box (lon_min, lat_min, lon_max, lat_max) for Ottawa core.
+    bbox_west: float = -75.770
+    bbox_south: float = 45.360
+    bbox_east: float = -75.630
+    bbox_north: float = 45.460
+    downtown_lat: float = 45.4215
+    downtown_lng: float = -75.6972
 
     resolutions: tuple[int, ...] = (8, 9)
 

@@ -33,7 +33,7 @@ from app.models.scoring import (
 router = APIRouter(prefix="/api")
 
 
-def _validate_resolution(resolution: int, city: str = "quebec") -> None:
+def _validate_resolution(resolution: int, city: str = "ottawa") -> None:
     c = get_city(city).id
     store = get_store()
     if (c, resolution) not in store._frames:
@@ -80,7 +80,7 @@ def health() -> HealthResponse:
 
 @router.get("/zones")
 def zones(
-    city: str = Query(default="quebec", description="City id"),
+    city: str = Query(default="ottawa", description="City id"),
     resolution: int = Query(default=8, ge=0, le=15),
 ) -> dict:
     """GeoJSON FeatureCollection of scored H3 zones for a city."""
@@ -116,7 +116,7 @@ def zone_detail(
 
 @router.get("/stats", response_model=StatsResponse)
 def stats(
-    city: str = Query(default="quebec", description="City id"),
+    city: str = Query(default="ottawa", description="City id"),
     resolution: int = Query(default=8, ge=0, le=15),
 ) -> StatsResponse:
     _validate_resolution(resolution, city=city)
