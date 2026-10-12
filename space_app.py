@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+import socket
 import sys
+import time
 from pathlib import Path
 
 # Add backend directory to sys.path so 'app' package is found
@@ -37,7 +39,22 @@ with gr.Blocks(title="ZoneScore — GeoSafe Analytics") as demo:
 # Mount Gradio app onto FastAPI app
 app = gr.mount_gradio_app(fastapi_app, demo, path="/gradio")
 
+
+def wait_for_port(host: str, port: int, timeout: int = 15) -> None:
+    """Wait for port to be released from TIME_WAIT before launching uvicorn."""
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.bind((host, port))
+                return
+        except OSError:
+            time.sleep(1)
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", os.environ.get("URBIS_PORT", 7860)))
     host = os.environ.get("URBIS_HOST", "0.0.0.0")
+    wait_for_port(host, port)
     uvicorn.run(app, host=host, port=port)
