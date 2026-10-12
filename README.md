@@ -1,15 +1,3 @@
----
-title: ZoneScore
-emoji: 🗺️
-colorFrom: blue
-colorTo: indigo
-sdk: gradio
-sdk_version: 5.50.0
-app_file: app.py
-hardware: cpu-basic
-pinned: false
----
-
 # ZoneScore — GeoSafe Cross-Border Urban Analytics Platform
 
 ![ZoneScore Platform Preview](docs/images/zonescore_preview.png)
